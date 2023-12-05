@@ -107,7 +107,7 @@ jacocoTestCoverageVerification() {
 
 task customCheckstyle(type: Checkstyle){
 	configFile = file("${rootDir}/config/checkstyle/checkstyle/xml")
-	source = sourceSets.main.allJava.filter{ file->
+	source = sourceSets.main.allJava.filter { file ->
 		!file.path.contains('generated')
 	}
 }
