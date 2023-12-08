@@ -114,8 +114,8 @@ paths:
     get:
       tags:
         - vendor
-      summary: Get all dishes from a vendor
-      description: Get the dishes of a vendor from the database by vendorId
+      summary: Get all dishes from a vendor, except dishes having any of the customer's allergens
+      description: Get the dishes of a vendor from the database by vendorId except dishes having any of the customer's allergens
       operationId: getVendorDishes
       parameters:
         - name: vendorId
@@ -145,6 +145,8 @@ paths:
           description: Customer or vendor id not found
         '500':
           description: Internal server error
+
+  /vendor/{vendorId}/dish/new:
     post:
       tags:
         - vendor
@@ -155,13 +157,6 @@ paths:
         - name: vendorId
           in: path
           description: ID of vendor that needs to add the new dish
-          required: true
-          schema:
-            type: integer
-            format: int64
-        - name: customerId
-          in: path
-          description: ID of user that is making the query. It allows to filter for the customer's allergens.
           required: true
           schema:
             type: integer
