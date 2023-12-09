@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.commons;
+package nl.tudelft.sem.template.commons;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Rating;
 
 @Entity
 @Table(name = "RatingTable")
-public class RatingCopy extends Rating{
+public class RatingEntity extends Rating{
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rating_seq")

@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.commons;
+package nl.tudelft.sem.template.commons;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.User;
 
 @Entity
 @Table(name = "UserTable")
-public class UserCopy extends User{
+public class UserEntity extends User{
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

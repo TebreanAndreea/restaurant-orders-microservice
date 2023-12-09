@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.commons;
+package nl.tudelft.sem.template.commons;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -6,11 +6,11 @@ import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import javax.persistence.SequenceGenerator;
 import javax.persistence.Table;
-import nl.tudelft.sem.template.model.Customer;
+import nl.tudelft.sem.template.model.Admin;
 
 @Entity
-@Table(name = "CustomerTable")
-public class CustomerCopy extends Customer{
+@Table(name = "AdminTable")
+public class AdminEntity extends Admin{
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
@@ -18,4 +18,5 @@ public class CustomerCopy extends Customer{
     public Long getId() {
         return super.getId();
     }
+
 }

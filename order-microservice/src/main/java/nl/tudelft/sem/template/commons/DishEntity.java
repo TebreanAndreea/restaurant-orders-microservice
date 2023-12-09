@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.commons;
+package nl.tudelft.sem.template.commons;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Dish;
 
 @Entity
 @Table(name = "DishTable")
-public class DishCopy extends Dish{
+public class DishEntity extends Dish {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "dish_seq")
