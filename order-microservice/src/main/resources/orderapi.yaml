@@ -11,11 +11,11 @@ tags:
   - name: order
     description: A user can make an order
   - name: admin
-    description: An admin of YumYum
+    description: An admin of YumYumNow
   - name: dish
     description: An order consists of multiple dishes
   - name: analytics
-    description:
+    description: Statistics about vendors, customers and orders
 paths:
   /vendor:
     get:
