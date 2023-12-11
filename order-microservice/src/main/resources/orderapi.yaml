@@ -3,23 +3,34 @@ info:
   title: YumYum order microservice
   description: Group 09a Software Engineering Management 23/24
   version: 1.0.0
-#servers:
-#  - url: 'https'
+servers:
+  - url: 'https://localhost:8082'
 tags:
   - name: vendor
-#    description: A user who owns a restaurant
+    description: A user who owns a restaurant
   - name: order
-#    description: A user can make an order
+    description: A user can make an order
+  - name: admin
+    description: An admin of YumYumNow
   - name: dish
-#    description: An order consists of multiple dishes
+    description: An order consists of multiple dishes
+  - name: analytics
+    description: Statistics about vendors, customers and orders
 paths:
   /vendor:
     get:
       tags:
         - vendor
-      summary: Get all vendors
-#      description: Get all vendors from the database
+      summary: Get all vendors that matches a filter (optional)
+      description: Get all vendors from the database that matches a filter (optional)
       operationId: getAllVendors
+      parameters:
+        - name: filter
+          in: query
+          description: Filtering criterion, it will be use to match restaurant names by string comparison.
+          required: false
+          schema:
+            type: string
       responses:
         '200':
           description: All vendors are successfully retrieved
@@ -29,21 +40,35 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Vendor'
+        '500':
+          description: Internal server error
 
   /vendor/close:
     get:
       tags:
         - vendor
       summary: Get all vendors
-#      description: Get all vendors from the database around the address
+      description: Get all vendors from the database around the address
       operationId: getAllVendorsAddress
       parameters:
         - name: location
-          in: path
+          in: header
           description: The address of the customer
           required: true
           schema:
             $ref: '#/components/schemas/Location'
+        - name: filter
+          in: query
+          description: Filtering criterion, it will be use to match restaurant names by string comparison.
+          schema:
+            type: string
+        - name: radius
+          in: query
+          description: The radius (in meters) in which the restaurants should be searched. By default, it is 1000m.
+          required: false
+          schema:
+            type: integer
+            format: int32
       responses:
         '200':
           description: All vendors are successfully retrieved
@@ -53,25 +78,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Vendor'
-        '400':
+        '404':
           description: Invalid address
+        '500':
+          description: Internal server error
 
   /vendor/{vendorId}:
     get:
       tags:
         - vendor
       summary: Get a vendor by id
-#      description: Get a vendor from the database by Id
+      description: Get a vendor from the database by Id
       operationId: getVendor
       parameters:
         - name: vendorId
           in: path
-#          description: ID of user that vendor to be selected
+          description: ID of the vendor that is selected.
           required: true
           schema:
             type: integer
             format: int64
-
       responses:
         '200':
           description: Vendor successfully retrieved
@@ -79,25 +105,33 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Vendor'
-        '400':
-          description: Invalid id
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
 
-  /vendor/{vendorId}/dish:
+  /vendor/{vendorId}/dish/{customerId}:
     get:
       tags:
         - vendor
-      summary: Get all dishes from a vendor
-#      description: Get the dishes of a vendor from the database by vendorId
+      summary: Get all dishes from a vendor, except dishes having any of the customer's allergens
+      description: Get the dishes of a vendor from the database by vendorId except dishes having any of the customer's allergens
       operationId: getVendorDishes
       parameters:
         - name: vendorId
           in: path
-#          description: ID of user that vendor to be selected
+          description: ID of the vendor that is selected.
           required: true
           schema:
             type: integer
             format: int64
-
+        - name: customerId
+          in: path
+          description: ID of user that is making the query. It allows to filter for the customer's allergens.
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: All dishes are successfully retrieved
@@ -107,18 +141,22 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Dish'
-        '400':
-          description: Invalid id
+        '404':
+          description: Customer or vendor id not found
+        '500':
+          description: Internal server error
+
+  /vendor/{vendorId}/dish/new:
     post:
       tags:
         - vendor
       summary: Adds a new dish to the catalog of a vendor.
-#      description: Adds a new dish to the catalog of a vendor.
+      description: Adds a new dish to the catalog of a vendor.
       operationId: addDishToVendor
       parameters:
         - name: vendorId
           in: path
-#          description: ID of vendor that needs to add the new dish
+          description: ID of vendor that needs to add the new dish
           required: true
           schema:
             type: integer
@@ -132,32 +170,34 @@ paths:
         '404':
           description: Vendor not found
         '200':
-          description: Successful request
+          description: The dish was successfully added
+        '500':
+          description: Internal server error
 
   /vendor/{vendorId}/order/{orderId}:
     get:
       tags:
         - vendor
       summary: Fetches the dishes which need to be prepared.
-#      description: Retrieves a list of dishes from an order which a specific vendor needs to prepare.
+      description: Retrieves a list of dishes from an order which a specific vendor needs to prepare.
       operationId: getDishesToPrepare
       parameters:
         - name: orderId
           in: path
-#          description: ID of order which contains the certain dishes
+          description: ID of order which contains the certain dishes
           required: true
           schema:
             type: integer
         - name: vendorId
           in: path
-#          description: ID of vendor that needs to prepare the dishes
+          description: ID of vendor that needs to prepare the dishes
           required: true
           schema:
             type: integer
             format: int64
       responses:
         '200':
-          description: Successful request
+          description: All dishes to prepare were successfully retrieved
           content:
             application/json:
               schema:
@@ -165,73 +205,88 @@ paths:
                 items:
                   $ref: '#/components/schemas/Dish'
         '404':
-          description: Order / Vendor not found
+          description: Order or vendor id not found
+        '500':
+          description: Internal server error
 
   /vendor/{vendorId}/dish/{dishId}:
     delete:
       tags:
         - vendor
       summary: Removes a dish from the catalog of a vendor.
-#      description: Removes a dish from the catalog of a vendor.
+      description: Removes a dish from the catalog of a vendor.
       operationId: removeDishFromVendor
       parameters:
         - name: dishId
           in: path
-#          description: ID of dish which needs to be removed
+          description: ID of dish which needs to be removed
           required: true
           schema:
             type: integer
         - name: vendorId
           in: path
-#          description: ID of vendor that needs to remove the dish
+          description: ID of vendor that needs to remove the dish
           required: true
           schema:
             type: integer
             format: int64
       responses:
         '404':
-          description: Dish / Vendor not found
+          description: Dish or vendor not found
         '200':
-          description: Successful request
+          description: The dish was successfully removed
+        '500':
+          description: Internal server error
     put:
       tags:
         - vendor
       summary: Modifies a dish from the catalog of a vendor.
-#      description: Modifies a dish from the catalog of a vendor.
+      description: Modifies a dish from the catalog of a vendor.
       operationId: modifyDishFromVendor
       parameters:
         - name: dishId
           in: path
-#          description: ID of dish which needs to be updated
+          description: ID of dish which needs to be updated
           required: true
           schema:
             type: integer
+            format: int64
         - name: vendorId
           in: path
-#          description: ID of vendor that needs to update the dish
+          description: ID of vendor that needs to update the dish
           required: true
           schema:
             type: integer
             format: int64
       requestBody:
-#        description: Update a dish
+        description: Update a dish
         content:
           application/json:
             schema:
               $ref: '#/components/schemas/Dish'
       responses:
         '404':
-          description: Dish / Vendor not found
+          description: Dish or vendor not found
         '200':
-          description: Successful request
+          description: The dish was successfully modified
+        '500':
+          description: Internal server error
 
-  /orders:
+  /admin/order/all/{adminId}:
     get:
       tags:
-        - order
+        - admin
       summary: Get all their orders in the system
-#      description: Get all their orders in the system
+      description: Get all their orders in the system
       operationId: getAllOrders
+      parameters:
+        - name: adminId
+          in: path
+          description: ID of admin
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: All orders are retrieved.
@@ -241,27 +296,221 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Order'
-        '400':
-          description: No orders found
+        '404':
+          description: Admin id not found
+        '500':
+          description: Internal server error
 
-  /order/{orderId}:
+  /admin/order/{orderId}/{adminId}:
+    get:
+      tags:
+        - admin
+      summary: Get an order by its id
+      description: Get an order by its id
+      operationId: getOrderAdmin
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the Order
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: adminId
+          in: path
+          description: ID of the Admin
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order is retrieved successfully.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Order'
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - admin
+      summary: Update an order by its id
+      description: Update an order by its id
+      operationId: updateOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the Order
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: adminId
+          in: path
+          description: ID of the Admin
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The order to update
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Order'
+          application/xml:
+            schema:
+              $ref: '#/components/schemas/Order'
+      responses:
+        '200':
+          description: Order updated successfully
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+    delete:
+      tags:
+        - admin
+      summary: Remove an order by its id
+      description: Remove an order by its id
+      operationId: removeOrder
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the Order
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: adminId
+          in: path
+          description: ID of the Admin
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order deleted successfully
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /admin/order/vendor/{vendorId}/{customerId}/{adminId}:
+    get:
+      tags:
+        - admin
+      summary: Get a list of all orders a vendor has had
+      description: Get a list of all orders a vendor has had from a specific client
+      operationId: getListOfOrdersForVendorForClient
+      parameters:
+        - name: vendorId
+          in: path
+          description: ID of vendor that needs to be retrieved
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: customerId
+          in: path
+          description: ID of customer that needs to be retrieved
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: adminId
+          in: path
+          description: ID of admin
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: All orders of the vendor successfully retrieved.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Order'
+        '404':
+          description: Vendor or customer id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
+
+  /order/new/{customerId}:
+    post:
+      tags:
+        - order
+      summary: Creates a new order for the given customer
+      description: Creates a new order object for the given customer
+      operationId: createOrder
+      parameters:
+        - name: customerId
+          in: path
+          description: ID of customer creating the order
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order successfully created
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Order'
+            application/xml:
+              schema:
+                items:
+                  $ref: '#/components/schemas/Order'
+        '404':
+          description: Customer id not found
+        '500':
+          description: Internal server error
+
+  /order/{orderId}/{userId}:
     put:
       tags:
         - order
       summary: Update an existing order
-#      description: Update an existing order by the orderId
+      description: Update an existing order by the orderId
       operationId: modifyOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of order that needs to be updated
+          description: ID of order that needs to be updated
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          description: ID of user that wants to update
           required: true
           schema:
             type: integer
             format: int64
         - name: dishes
           in: query
-#          description: The list of dishes that needs to be updated
+          description: The list of dishes that needs to be updated
           required: true
           schema:
             type: array
@@ -269,39 +518,52 @@ paths:
               $ref: '#/components/schemas/Dish'
         - name: location
           in: query
-#          description: The location that needs to be updated
+          description: The location that needs to be updated
           required: true
           schema:
             type: string
         - name: status
           in: query
-#          description: The status of the order that needs to be updated
+          description: The status of the order that needs to be updated
           required: true
           schema:
             type: string
         - name: time
           in: query
-#          description: The time of the order that needs to be updated
+          description: The time of the order that needs to be updated
           required: true
           schema:
             type: string
             format: date-time
       responses:
-        '405':
-          description: Invalid input
+        '200':
+          description: Dish successfully updated
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
     get:
       tags:
         - order
       summary: Get an Order
-#      description: Get an Order from the database by id
+      description: Get an Order from the database by id
       operationId: getOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of the Order
+          description: ID of the Order
           required: true
           schema:
             type: integer
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: Order successfully retrieved
@@ -312,18 +574,29 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/Order'
-        '400':
-          description: Invalid id
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
     post:
       tags:
         - order
       summary: Complete order status
-#      description: Mark an order as complete and change its status
+      description: Mark an order as complete and change its status
       operationId: completeOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of the order that is completed
+          description: ID of the order that is completed
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          description: ID of user who made the order
           required: true
           schema:
             type: integer
@@ -338,101 +611,67 @@ paths:
             application/xml:
               schema:
                 type: string
+        '401':
+          description: Unauthorized
+        '404':
+          description: Order id not found
+        '500':
+          description: Internal server error
     delete:
       tags:
         - order
       summary: Delete an order
-#      description: Delete an order by its id
+      description: Delete an order by its id
       operationId: deleteOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of the order that needs to be deleted
+          description: ID of the order that needs to be deleted
           required: true
           schema:
             type: integer
             format: int64
-
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: Order successfully deleted
-        '400':
-          description: Invalid order id
-
-  /order/{orderId}/rating:
-    get:
-      tags:
-        - order
-      summary: Get the order's rating
-#      description: Get the order's rating by the orderId
-      operationId: getOrderRating
-      parameters:
-        - name: orderId
-          in: path
-#          description: ID of order that will be retrieved
-          required: true
-          schema:
-            type: integer
-            format: int64
-      responses:
-        '200':
-          description: Order successfully retrieved
-          content:
-            application/json:
-              schema:
-                items:
-                  $ref: '#/components/schemas/Order'
-            application/xml:
-              schema:
-                items:
-                  $ref: '#/components/schemas/Order'
-    put:
-      tags:
-        - order
-      summary: Sets rating for the order
-#      description: Set the ratin for an order and store it.
-      operationId: setOrderRating
-      parameters:
-        - name: orderId
-          in: path
-#          description: ID of the order to modify
-          required: true
-          schema:
-            type: integer
-            format: int64
-      requestBody:
-#        description: The rating for the order
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Rating'
-      responses:
-        '200':
-          description: Rating updated successfully
         '404':
-          description: No order matches the given id
+          description: Invalid order id
         '401':
-          description: Permission denied for that order
+          description: Unauthorized
+        '500':
+          description: Internal server error
 
-
-  /order/{orderId}/requirements:
+  /order/{orderId}/requirements/{userId}:
     put:
       tags:
         - order
       summary: Sets special requirements for the order
-#      description: Set the special requirements for an order and store it.
+      description: Set the special requirements for an order and store it.
       operationId: setOrderRequirements
       parameters:
         - name: orderId
           in: path
-#          description: ID of the order to modify
+          description: ID of the order to modify
           required: true
           schema:
             type: integer
             format: int64
-
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
-#        description: The requirements for the order
+        description: The requirements for the order
         content:
           application/json:
             schema:
@@ -442,28 +681,36 @@ paths:
         '200':
           description: Requirements updated successfully
         '404':
-          description: No order matches the given id
+          description: Order id not found
         '401':
-          description: Permission denied for that order
+          description: Unauthorized
+        '500':
+          description: Internal server error
 
-  /order/{orderId}/dish:
+  /order/{orderId}/dish/{userId}:
     post:
       tags:
         - order
       summary: Adds a dish to the order
-#      description: Adds a dish to the order dish list and store it.
+      description: Adds a dish to the order dish list and store it.
       operationId: addDishToOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of the order to which the dish is added
+          description: ID of the order to which the dish is added
           required: true
           schema:
             type: integer
             format: int64
-
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
       requestBody:
-#        description: The dish to add
+        description: The dish to add
         content:
           application/json:
             schema:
@@ -471,26 +718,35 @@ paths:
       responses:
         '200':
           description: Dish added successfully to order
-        '400':
-          description: No order matches the given id
+        '404':
+          description: Order or dish id not found
         '401':
-          description: Permission denied for that order
+          description: Unauthorized
+        '500':
+          description: Internal server error
     delete:
       tags:
         - order
       summary: Removes a dish from an order
-#      description: Removes a dish from an order dish list and store it.
+      description: Removes a dish from an order dish list and store it.
       operationId: removeDishFromOrder
       parameters:
         - name: orderId
           in: path
-#          description: ID of the order from which the dish is removed
+          description: ID of the order from which the dish is removed
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: userId
+          in: path
+          description: ID of user who made the order
           required: true
           schema:
             type: integer
             format: int64
       requestBody:
-#        description: The dish to remove
+        description: The dish to remove
         content:
           application/json:
             schema:
@@ -498,19 +754,19 @@ paths:
       responses:
         '200':
           description: Dish removed successfully from order
-        '400':
-          description: No order matches the given id
+        '500':
+          description: Internal server error
         '401':
-          description: Permission denied for that order
+          description: Unauthorized
         '404':
-          description: The dish was not found in that order
+          description: Dish or order not found
 
-  /order/{orderId}/status:
+  /order/{orderId}/status/{userId}:
     get:
       tags:
         - order
       summary: Get an Order Status
-#      description: Get an Order Status from the database by id
+      description: Get an Order Status from the database by id
       operationId: getOrderStatus
       parameters:
         - name: orderId
@@ -519,6 +775,13 @@ paths:
           required: true
           schema:
             type: integer
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
       responses:
         '200':
           description: Order Status successfully retrieved
@@ -529,29 +792,40 @@ paths:
             application/xml:
               schema:
                 type: integer
-        '400':
-          description: Invalid id
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
 
     put:
       tags:
         - order
       summary: Update the status for an order
-#      description: Update the status for an order using its id
+      description: Update the status for an order using its id
       operationId: setOrderStatus
       parameters:
         - name: orderId
           in: path
-#          description: ID of order that needs to be handled
+          description: ID of order that needs to be handled
           required: true
           schema:
             type: integer
+        - name: userId
+          in: path
+          description: ID of user who made the order
+          required: true
+          schema:
+            type: integer
+            format: int64
         - name: status
           in: query
-#          description: new status of order that needs to be handled
+          description: new status of order that needs to be handled
           schema:
             type: string
       requestBody:
-#        description: Update an order's status
+        description: Update an order's status
         content:
           application/json:
             schema:
@@ -566,25 +840,28 @@ paths:
             application/xml:
               schema:
                 type: string
-        '400':
-          description: Invalid input/id
+        '404':
+          description: Order id not found
+        '401':
+          description: Unauthorized
+        '500':
+          description: Internal server error
 
-  /orders/customer/{customerId}:
+  /order/customer/{customerId}:
     get:
       tags:
         - order
       summary: Get a list of all orders a customer has ordered
-#      description: Get a list of all orders a customer has ordered
+      description: Get a list of all orders a customer has ordered
       operationId: getListOfOrdersForCustomers
       parameters:
         - name: customerId
           in: path
-#          description: ID of user that needs to be retrieved
+          description: ID of user that needs to be retrieved
           required: true
           schema:
             type: integer
             format: int64
-
       responses:
         '200':
           description: All orders of the customer successfully retrieved.
@@ -594,25 +871,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Order'
-        '400':
-          description: Invalid customer id
+        '404':
+          description: Customer id not found
+        '500':
+          description: Internal server error
 
-  /orders/vendor/{vendorId}:
+  /order/vendor/{vendorId}:
     get:
       tags:
         - order
       summary: Get a list of all orders a vendor has had
-#      description: Get a list of all orders a vendor has had
+      description: Get a list of all orders a vendor has had
       operationId: getListOfOrdersForVendor
       parameters:
         - name: vendorId
           in: path
-#          description: ID of vendor that needs to be retrieved
+          description: ID of vendor that needs to be retrieved
           required: true
           schema:
             type: integer
             format: int64
-
       responses:
         '200':
           description: All orders of the vendor successfully retrieved.
@@ -622,20 +900,22 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Dish'
-        '400':
-          description: Invalid customer id
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
 
   /dish/{dishId}:
     get:
       tags:
         - dish
       summary: Get a dish
-#      description: Get a dish from the database by id
+      description: Get a dish from the database by id
       operationId: getDish
       parameters:
         - name: dishId
           in: path
-#          description: ID of the Dish
+          description: ID of the Dish
           required: true
           schema:
             type: integer
@@ -649,8 +929,272 @@ paths:
             application/xml:
               schema:
                 $ref: '#/components/schemas/Dish'
-        '400':
+        '404':
           description: Invalid id
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - dish
+      summary: Update a dish
+      description: Update a dish from the database by id
+      operationId: updateDish
+      parameters:
+        - name: dishId
+          in: path
+          description: ID of the Dish
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Dish successfully updated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: Dish id not found
+        '500':
+          description: Internal server error
+
+  /analytics/vendor/{vendorId}/average-price:
+    get:
+      tags:
+        - analytics
+      summary: Get average-price from a vendor
+      description: Get average-price from a vendor's list
+      operationId: getAveragePrice
+      parameters:
+        - name: vendorId
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Average price successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
+
+  /analytics/customer/{customerId}/average-price:
+    get:
+      tags:
+        - analytics
+      summary: Get average-price from a customer
+      description: Get average-price from a customer
+      operationId: getCustomerAveragePrice
+      parameters:
+        - name: customerId
+          in: path
+          description: ID of the customer
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Average price successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Customer id not found
+        '500':
+          description: Internal server error
+
+  /analytics/rating/vendor/{vendorId} :
+    get:
+      tags:
+        - analytics
+      summary: Get the average rating
+      description: Get the average rating of a vendor
+      operationId: getAverageRating
+      parameters:
+        - name: vendorId
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Average rating successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
+
+  /analytics/customer/{customerId}/orders-per-month:
+    get:
+      tags:
+        - analytics
+      summary: Get the orders per month
+      description: Get the amount of orders per month for a customer
+      operationId: getOrdersPerMonth
+      parameters:
+        - name: customerId
+          in: path
+          description: ID of the customer
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Orders per month successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Customer id not found
+        '500':
+          description: Internal server error
+
+  /analytics/vendor/{vendorId}/orders-per-day :
+    get:
+      tags:
+        - analytics
+      summary: Get the orders per day
+      description: Get the amount of orders per day
+      operationId: getOrdersPerDay
+      parameters:
+        - name: vendorId
+          in: path
+          description: ID of vendor
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order per day successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
+
+  /analytics/order/{orderId}/rating:
+    get:
+      tags:
+        - analytics
+      summary: Get the order's rating
+      description: Get the order's rating by the orderId
+      operationId: getOrderRating
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of order that will be retrieved
+          required: true
+          schema:
+            type: integer
+            format: int64
+      responses:
+        '200':
+          description: Order's rating successfully retrieved
+          content:
+            application/json:
+              schema:
+                type: integer
+            application/xml:
+              schema:
+                type: integer
+        '404':
+          description: Order id not found
+        '500':
+          description: Internal server error
+    put:
+      tags:
+        - analytics
+      summary: Sets rating for the order
+      description: Set the rating for an order and store it.
+      operationId: setOrderRating
+      parameters:
+        - name: orderId
+          in: path
+          description: ID of the order to modify
+          required: true
+          schema:
+            type: integer
+            format: int64
+      requestBody:
+        description: The rating for the order
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Rating'
+      responses:
+        '200':
+          description: Rating updated successfully
+        '404':
+          description: Order id not found
+        '500':
+          description: Internal server error
+
+  /analytics/vendor/{vendorId}/popular-dish:
+    get:
+      tags:
+        - analytics
+      summary: Get popular dish from a vendor
+      description: Get popular dish from a vendor's list of dishes
+      operationId: getPopularDish
+      parameters:
+        - name: vendorId
+          in: path
+          description: ID of the vendor
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Popular Dish successfully retrieved
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Dish'
+            application/xml:
+              schema:
+                $ref: '#/components/schemas/Dish'
+        '404':
+          description: Vendor id not found
+        '500':
+          description: Internal server error
 
 components:
   schemas:
@@ -660,41 +1204,47 @@ components:
         id:
           type: integer
           format: int64
-          example: 203
+          example: 10
         name:
           type: string
-          example: John
+          example: Peter
         surname:
           type: string
-          example: Smith
+          example: Peterity
         email:
           type: string
-          example: john@gmail.com
+          example: peter@gmail.com
     Customer:
       allOf:
         - $ref: '#/components/schemas/User'
         - type: object
           properties:
-            allergens:
-              type: array
-              items:
-                type: string
-                example: gluten
             home_address:
               $ref: '#/components/schemas/Location'
             paymentMethod:
               type: string
               enum: [ cash, Visa, Maestro, appleWallet ]
-            favouriteFood:
-              $ref: '#/components/schemas/Dish'
-            favouriteVendor:
-              $ref: '#/components/schemas/Vendor'
-            savedOrder:
-              $ref: '#/components/schemas/Order'
+            favouriteFoods:
+              type: array
+              items:
+                $ref: '#/components/schemas/Dish'
+            favouriteRestaurants:
+              type: array
+              items:
+                $ref: '#/components/schemas/Vendor'
+            savedOrders:
+              type: array
+              items:
+                $ref: '#/components/schemas/Order'
             pastOrders:
               type: array
               items:
                 $ref: '#/components/schemas/Order'
+            allergens:
+              type: array
+              items:
+                type: string
+
     Admin:
       allOf:
         - $ref: '#/components/schemas/User'
@@ -704,11 +1254,19 @@ components:
         - $ref: '#/components/schemas/User'
         - type: object
           properties:
-            restaurant_name:
+            restaurantName:
               type: string
-              example: "KFC"
             location:
               $ref: '#/components/schemas/Location'
+            openingHours:
+              $ref: '#/components/schemas/OpeningTimes'
+            deliveryRadius:
+              type: integer
+              format: int32
+            dishes:
+              type: array
+              items:
+                $ref: '#/components/schemas/Dish'
     Order:
       type: object
       properties:
@@ -732,18 +1290,18 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/Dish'
-        status:
-          type: string
-          example: "In preparation"
         time:
           type: string
           format: date-time
           example: "Today at 19:00"
         location:
           $ref: '#/components/schemas/Location'
-
         rating:
           $ref: '#/components/schemas/Rating'
+        status:
+          type: string
+          enum: [ pending, accepted, rejected, preparing, given to courier, on-transit, delivered ]
+
     Rating:
       type: object
       properties:
@@ -753,32 +1311,12 @@ components:
           example: 34
         grade:
           type: integer
+          format: int64
           example: 6
         comment:
           type: string
           example: "The food was cold"
-    Dish:
-      type: object
-      properties:
-        id:
-          type: integer
-          format: int64
-          example: 72
-        name:
-          type: string
-          example: "Pizza Diavola"
-        description:
-          type: string
-          example: "Pizza Diavola, fresh, right out of the oven"
-        price:
-          type: number
-          format: double
-          example: 15.5
-        ingredients:
-          type: array
-          items:
-            type: string
-            example: "Tomatoes"
+
     Location:
       type: object
       properties:
@@ -789,3 +1327,49 @@ components:
           type: number
           format: double
 
+    Dish:
+      type: object
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 10
+        name:
+          type: string
+          example: "pepperoni pizza"
+        allergens:
+          type: array
+          items:
+            type: string
+        price:
+          type: number
+          format: double
+
+    OpeningTimes:
+      type: object
+      properties:
+        monday:
+          $ref: '#/components/schemas/Day'
+        tuesday:
+          $ref: '#/components/schemas/Day'
+        wednesday:
+          $ref: '#/components/schemas/Day'
+        thursday:
+          $ref: '#/components/schemas/Day'
+        friday:
+          $ref: '#/components/schemas/Day'
+        saturday:
+          $ref: '#/components/schemas/Day'
+        sunday:
+          $ref: '#/components/schemas/Day'
+    Day:
+      type: object
+      properties:
+        open:
+          type: string
+          format: time
+          example: 09:00
+        close:
+          type: string
+          format: time
+          example: 22:00
