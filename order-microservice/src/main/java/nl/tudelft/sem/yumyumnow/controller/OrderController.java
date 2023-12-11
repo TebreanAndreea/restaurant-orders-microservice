@@ -1,6 +1,6 @@
-package nl.tudelft.sem.template.controller;
+package nl.tudelft.sem.yumyumnow.controller;
 
-import nl.tudelft.sem.template.api.OrderApi;
+import nl.tudelft.sem.yumyumnow.api.OrderApi;
 import org.springframework.web.bind.annotation.RestController;
 
 @RestController

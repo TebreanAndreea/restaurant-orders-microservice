@@ -1,6 +1,6 @@
-package nl.tudelft.sem.template.database;
+package nl.tudelft.sem.yumyumnow.database;
 
-import nl.tudelft.sem.template.commons.DishEntity;
+import nl.tudelft.sem.yumyumnow.commons.DishEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
