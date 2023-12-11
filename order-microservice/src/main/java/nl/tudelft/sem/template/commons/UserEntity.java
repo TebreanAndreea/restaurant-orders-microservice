@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.User;
 
 @Entity
 @Table(name = "UserTable")
-public class UserEntity extends User{
+public class UserEntity extends User {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)

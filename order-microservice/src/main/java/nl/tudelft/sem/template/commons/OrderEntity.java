@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Order;
 
 @Entity
 @Table(name = "OrderTable")
-public class OrderEntity extends Order{
+public class OrderEntity extends Order {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "order_seq")

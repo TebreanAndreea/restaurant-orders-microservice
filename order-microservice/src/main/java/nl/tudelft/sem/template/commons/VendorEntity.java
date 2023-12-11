@@ -1,4 +1,4 @@
-package nl.tudelft.sem.template.example.commons;
+package nl.tudelft.sem.template.commons;
 
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Vendor;
 
 @Entity
 @Table(name = "VendorTable")
-public class VendorEntity extends Vendor{
+public class VendorEntity extends Vendor {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")

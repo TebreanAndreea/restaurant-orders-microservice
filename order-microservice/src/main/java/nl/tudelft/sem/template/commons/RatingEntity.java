@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Rating;
 
 @Entity
 @Table(name = "RatingTable")
-public class RatingEntity extends Rating{
+public class RatingEntity extends Rating {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "rating_seq")

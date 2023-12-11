@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Admin;
 
 @Entity
 @Table(name = "AdminTable")
-public class AdminEntity extends Admin{
+public class AdminEntity extends Admin {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")

@@ -10,7 +10,7 @@ import nl.tudelft.sem.template.model.Customer;
 
 @Entity
 @Table(name = "CustomerTable")
-public class CustomerEntity extends Customer{
+public class CustomerEntity extends Customer {
     @Override
     @Id
     @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "user_seq")
