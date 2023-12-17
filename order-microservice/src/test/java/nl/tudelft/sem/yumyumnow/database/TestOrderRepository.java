@@ -3,7 +3,7 @@ package nl.tudelft.sem.yumyumnow.database;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import nl.tudelft.sem.yumyumnow.commons.OrderEntity;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -11,7 +11,7 @@ import org.springframework.data.domain.Sort;
 
 public class TestOrderRepository implements OrderRepository {
 
-    private final List<OrderEntity> orders;
+    private final List<Order> orders;
     private final List<String> methodCalls;
 
     /**
@@ -47,7 +47,7 @@ public class TestOrderRepository implements OrderRepository {
     }
 
     @Override
-    public <S extends OrderEntity> long count(Example<S> example) {
+    public <S extends Order> long count(Example<S> example) {
         return 0;
     }
 
@@ -58,13 +58,13 @@ public class TestOrderRepository implements OrderRepository {
     }
 
     @Override
-    public void delete(OrderEntity entity) {
+    public void delete(Order entity) {
         call("delete");
         this.orders.remove(entity);
     }
 
     @Override
-    public <S extends OrderEntity> S save(S entity) {
+    public <S extends Order> S save(S entity) {
         call("save");
         long id = this.orders.size();
         if (id > 0) {
@@ -76,7 +76,7 @@ public class TestOrderRepository implements OrderRepository {
     }
 
     @Override
-    public Optional<OrderEntity> findById(Long id) {
+    public Optional<Order> findById(Long id) {
         call("findById");
         return this.orders.stream().filter(x -> x.getId().equals(id)).findFirst();
     }
@@ -98,38 +98,38 @@ public class TestOrderRepository implements OrderRepository {
      * @return the list of Orders stored.
      */
     @Override
-    public List<OrderEntity> findAll() {
+    public List<Order> findAll() {
         call("findAll");
         return orders;
     }
 
     @Override
-    public List<OrderEntity> findAll(Sort sort) {
+    public List<Order> findAll(Sort sort) {
         return null;
     }
 
     @Override
-    public Page<OrderEntity> findAll(Pageable pageable) {
+    public Page<Order> findAll(Pageable pageable) {
         return null;
     }
 
     @Override
-    public <S extends OrderEntity> List<S> findAll(Example<S> example) {
+    public <S extends Order> List<S> findAll(Example<S> example) {
         return null;
     }
 
     @Override
-    public <S extends OrderEntity> List<S> findAll(Example<S> example, Sort sort) {
+    public <S extends Order> List<S> findAll(Example<S> example, Sort sort) {
         return null;
     }
 
     @Override
-    public <S extends OrderEntity> Page<S> findAll(Example<S> example, Pageable pageable) {
+    public <S extends Order> Page<S> findAll(Example<S> example, Pageable pageable) {
         return null;
     }
 
     @Override
-    public List<OrderEntity> findAllById(Iterable<Long> longs) {
+    public List<Order> findAllById(Iterable<Long> longs) {
         return null;
     }
 
@@ -140,22 +140,22 @@ public class TestOrderRepository implements OrderRepository {
     }
 
     @Override
-    public void deleteAll(Iterable<? extends OrderEntity> entities) {
+    public void deleteAll(Iterable<? extends Order> entities) {
 
     }
 
     @Override
-    public <S extends OrderEntity> List<S> saveAll(Iterable<S> entities) {
+    public <S extends Order> List<S> saveAll(Iterable<S> entities) {
         return null;
     }
 
     @Override
-    public <S extends OrderEntity> S saveAndFlush(S entity) {
+    public <S extends Order> S saveAndFlush(S entity) {
         return null;
     }
 
     @Override
-    public void deleteInBatch(Iterable<OrderEntity> entities) {
+    public void deleteInBatch(Iterable<Order> entities) {
 
     }
 
@@ -165,17 +165,17 @@ public class TestOrderRepository implements OrderRepository {
     }
 
     @Override
-    public OrderEntity getOne(Long id) {
+    public Order getOne(Long id) {
         return null;
     }
 
     @Override
-    public <S extends OrderEntity> Optional<S> findOne(Example<S> example) {
+    public <S extends Order> Optional<S> findOne(Example<S> example) {
         return Optional.empty();
     }
 
     @Override
-    public <S extends OrderEntity> boolean exists(Example<S> example) {
+    public <S extends Order> boolean exists(Example<S> example) {
         return false;
     }
 }
