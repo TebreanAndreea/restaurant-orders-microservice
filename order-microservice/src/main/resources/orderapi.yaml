@@ -454,17 +454,24 @@ paths:
         '500':
           description: Internal server error
 
-  /order/new/{customerId}:
+  /order/new/{customerId}/{vendorId}:
     post:
       tags:
         - order
-      summary: Creates a new order for the given customer
-      description: Creates a new order object for the given customer
+      summary: Creates a new order for the given customer at the given vendor
+      description: Creates a new order object for the given customer at the given vendor
       operationId: createOrder
       parameters:
         - name: customerId
           in: path
           description: ID of customer creating the order
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: vendorId
+          in: path
+          description: ID of vendor for which the customer is creating the order
           required: true
           schema:
             type: integer
@@ -475,14 +482,12 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/Order'
             application/xml:
               schema:
-                items:
-                  $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/Order'
         '404':
-          description: Customer id not found
+          description: Customer or Vendor id not found
         '500':
           description: Internal server error
 
