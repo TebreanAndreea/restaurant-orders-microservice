@@ -1,5 +1,6 @@
 package nl.tudelft.sem.yumyumnow.commons;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -17,5 +18,17 @@ public class DishEntity extends Dish {
     @SequenceGenerator(name = "dish_seq", sequenceName = "dish_seq", allocationSize = 1)
     public Long getId() {
         return super.getId();
+    }
+
+    @Override
+    @Column(name = "name")
+    public String getName() {
+        return super.getName();
+    }
+
+    @Override
+    @Column(name = "price")
+    public Double getPrice() {
+        return super.getPrice();
     }
 }

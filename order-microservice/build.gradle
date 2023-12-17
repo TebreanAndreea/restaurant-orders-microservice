@@ -149,29 +149,3 @@ pitest {
 	timestampedReports = false
 }
 
-apply plugin: 'org.openapi.generator'
-openApiGenerate {
-	generatorName.set("spring")
-	inputSpec.set("$rootDir/order-microservice/src/main/resources/orderapi.yaml")
-	outputDir.set("$buildDir/generated")
-	apiPackage.set("nl.tudelft.sem.yumyumnow.api")
-	modelPackage.set("nl.tudelft.sem.yumyumnow.model")
-	configOptions.set([
-			dateLibrary: "java15"
-	])
-
-	//Exclude controller generation
-	configOptions = [
-			interfaceOnly: 'true'
-	]
-}
-
-compileJava.dependsOn tasks.named("openApiGenerate")
-
-sourceSets{
-	getByName("main"){
-		java{
-			srcDir("$buildDir/generated/src/main/java")
-		}
-	}
-}
