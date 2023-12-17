@@ -111,6 +111,35 @@ public class Order {
     @Column(name = "status")
     private StatusEnum status;
 
+    /**
+     * Empty constructor for mapper.
+     */
+    public Order() {
+    }
+
+    /**
+     * Constructor.
+     * @param customerId customerId
+     * @param vendorId vendorId
+     * @param price price
+     * @param dishes dishes
+     * @param time time
+     * @param location location
+     * @param rating rating
+     * @param status status
+     */
+    public Order(Long customerId, Long vendorId, Double price, List<Dish> dishes, OffsetDateTime time,
+        Location location, Rating rating, StatusEnum status) {
+        this.customerId = customerId;
+        this.vendorId = vendorId;
+        this.price = price;
+        this.dishes = dishes;
+        this.time = time;
+        this.location = location;
+        this.rating = rating;
+        this.status = status;
+    }
+
     public Order id(Long id) {
         this.id = id;
         return this;

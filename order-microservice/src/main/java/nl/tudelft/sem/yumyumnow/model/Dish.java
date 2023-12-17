@@ -39,6 +39,23 @@ public class Dish {
     @Column(name = "price")
     private Double price;
 
+    /**
+     * Empty constructor.
+     */
+    public Dish() {}
+
+    /**
+     * Constructor.
+     * @param name name of dish
+     * @param allergens allergens of dish
+     * @param price price of dish
+     */
+    public Dish(String name, List<String> allergens, Double price) {
+        this.name = name;
+        this.allergens = allergens;
+        this.price = price;
+    }
+
     public Dish id(Long id) {
         this.id = id;
         return this;

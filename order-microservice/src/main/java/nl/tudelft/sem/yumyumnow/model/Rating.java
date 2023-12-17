@@ -28,6 +28,22 @@ public class Rating {
     @Column(name = "comment")
     private String comment;
 
+    /**
+     * Empty constructor.
+     */
+    public Rating() {}
+
+    /**
+     * Constructor.
+     * @param grade grade of rating
+     * @param comment comment of rating
+     */
+    public Rating(Long grade, String comment) {
+        this.grade = grade;
+        this.comment = comment;
+    }
+
+
     public Rating id(Long id) {
         this.id = id;
         return this;

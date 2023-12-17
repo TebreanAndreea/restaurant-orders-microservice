@@ -18,6 +18,26 @@ public class User {
 
     private String email;
 
+    /**
+     * Empty constructor.
+     */
+    public User() {
+    }
+
+    /**
+     * Constructor.
+     * @param id id of user
+     * @param name name of user
+     * @param surname surname of user
+     * @param email email of user
+     */
+    public User(Long id, String name, String surname, String email) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+    }
+
     public User id(Long id) {
         this.id = id;
         return this;

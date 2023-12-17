@@ -25,6 +25,23 @@ public class Location {
     @Column(name = "longitude")
     private Double longitude;
 
+    /**
+     * Empty constructor.
+     */
+    public Location() {
+    }
+
+    /**
+     * Constructor.
+     * @param latitude latitude of location
+     * @param longitude longitude of location
+     */
+    public Location(Double latitude, Double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
+
     public Location latitude(Double latitude) {
         this.latitude = latitude;
         return this;

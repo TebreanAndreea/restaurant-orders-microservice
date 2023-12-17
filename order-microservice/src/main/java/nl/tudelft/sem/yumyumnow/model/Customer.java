@@ -87,6 +87,46 @@ public class Customer {
     @Valid
     private List<String> allergens;
 
+    /**
+     * Constructor for Customer.
+     */
+    public Customer() {
+        this.favouriteFoods = new ArrayList<>();
+        this.favouriteRestaurants = new ArrayList<>();
+        this.savedOrders = new ArrayList<>();
+        this.pastOrders = new ArrayList<>();
+        this.allergens = new ArrayList<>();
+    }
+
+    /**
+     * Constructor for Customer.
+     *
+     * @param name name
+     * @param surname surname
+     * @param email email
+     * @param homeAddress homeAddress
+     * @param paymentMethod paymentMethod
+     * @param favouriteFoods favouriteFoods
+     * @param favouriteRestaurants favouriteRestaurants
+     * @param savedOrders savedOrders
+     * @param pastOrders pastOrders
+     * @param allergens allergens
+     */
+    public Customer(String name, String surname, String email, Location homeAddress,
+        PaymentMethodEnum paymentMethod, List<Dish> favouriteFoods, List<Vendor> favouriteRestaurants,
+        List<Order> savedOrders, List<Order> pastOrders, List<String> allergens) {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.homeAddress = homeAddress;
+        this.paymentMethod = paymentMethod;
+        this.favouriteFoods = favouriteFoods;
+        this.favouriteRestaurants = favouriteRestaurants;
+        this.savedOrders = savedOrders;
+        this.pastOrders = pastOrders;
+        this.allergens = allergens;
+    }
+
     public Customer id(Long id) {
         this.id = id;
         return this;

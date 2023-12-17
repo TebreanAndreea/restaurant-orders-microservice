@@ -15,6 +15,22 @@ public class Day {
 
     private String close;
 
+    /**
+     * Empty constructor.
+     */
+    public Day() {
+    }
+
+    /**
+     * Constructor.
+     * @param open open time
+     * @param close close time
+     */
+    public Day(String open, String close) {
+        this.open = open;
+        this.close = close;
+    }
+
     public Day open(String open) {
         this.open = open;
         return this;

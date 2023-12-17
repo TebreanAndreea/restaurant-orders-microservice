@@ -32,6 +32,38 @@ public class Vendor {
     @Valid
     private List<@Valid Dish> dishes;
 
+    /**
+     * Empty constructor.
+     */
+    public Vendor() {
+    }
+
+    /**
+     * Constructor.
+     * @param id id of vendor
+     * @param name name of vendor
+     * @param surname surname of vendor
+     * @param email email of vendor
+     * @param restaurantName restaurant name of vendor
+     * @param location location of vendor
+     * @param openingHours opening hours of vendor
+     * @param deliveryRadius delivery radius of vendor
+     * @param dishes dishes of vendor
+     */
+    public Vendor(Long id, String name, String surname, String email, String restaurantName,
+        Location location, OpeningTimes openingHours, Integer deliveryRadius,
+        List<Dish> dishes) {
+        this.id = id;
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+        this.restaurantName = restaurantName;
+        this.location = location;
+        this.openingHours = openingHours;
+        this.deliveryRadius = deliveryRadius;
+        this.dishes = dishes;
+    }
+
     public Vendor id(Long id) {
         this.id = id;
         return this;

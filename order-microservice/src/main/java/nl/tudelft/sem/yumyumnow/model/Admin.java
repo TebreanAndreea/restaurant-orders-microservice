@@ -25,6 +25,24 @@ public class Admin {
     }
 
     /**
+     * Empty constructor.
+     */
+    public Admin() {
+    }
+
+    /**
+     * Constructor.
+     * @param name name of admin
+     * @param surname surname of admin
+     * @param email email of admin
+     */
+    public Admin(String name, String surname, String email) {
+        this.name = name;
+        this.surname = surname;
+        this.email = email;
+    }
+
+    /**
      * Get id.
      *
      * @return id
