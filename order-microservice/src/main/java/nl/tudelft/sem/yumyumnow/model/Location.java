@@ -3,16 +3,26 @@ package nl.tudelft.sem.yumyumnow.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
 
 
 /**
  * Location of a vendor.
  */
-
+@Entity
 public class Location {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
+    private Long id;
+
+    @Column(name = "latitude")
     private Double latitude;
 
+    @Column(name = "longitude")
     private Double longitude;
 
     public Location latitude(Double latitude) {

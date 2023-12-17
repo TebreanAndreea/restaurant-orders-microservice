@@ -8,31 +8,53 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 import javax.validation.Valid;
 import org.springframework.format.annotation.DateTimeFormat;
 
 /**
  * Order of a customer.
  */
-
+@Entity
+@Table(name = "orders")
 public class Order {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "customer_id")
     private Long customerId;
 
+    @Column(name = "vendor_id")
     private Long vendorId;
 
+    @Column(name = "price")
     private Double price;
 
+    @Column(name = "dishes")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Dish> dishes;
 
+    @Column(name = "time")
     @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME)
     private OffsetDateTime time;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Location location;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Rating rating;
 
     /**
@@ -86,6 +108,7 @@ public class Order {
         }
     }
 
+    @Column(name = "status")
     private StatusEnum status;
 
     public Order id(Long id) {

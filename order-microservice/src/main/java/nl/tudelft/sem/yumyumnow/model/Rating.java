@@ -3,18 +3,29 @@ package nl.tudelft.sem.yumyumnow.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 
 /**
  * Rating of a certain dish.
  */
 
+@Entity
+@Table(name = "rating")
 public class Rating {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "grade")
     private Long grade;
 
+    @Column(name = "comment")
     private String comment;
 
     public Rating id(Long id) {
