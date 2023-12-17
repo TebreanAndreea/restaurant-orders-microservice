@@ -8,17 +8,21 @@ import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.web.client.RestTemplate;
 
 public class OrderServiceTest {
 
     private TestOrderRepository orderRepository;
     private OrderService orderService;
 
+    private UserService userService;
+
 
     @BeforeEach
     public void setup() {
         this.orderRepository = new TestOrderRepository();
-        this.orderService = new OrderService(this.orderRepository);
+        this.userService = new UserService(new RestTemplate());
+        this.orderService = new OrderService(this.orderRepository, this.userService);
     }
 
     @Test
