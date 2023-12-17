@@ -114,39 +114,37 @@ public interface OrderApi {
                     @Schema(implementation = Order.class))),
                 @Content(mediaType = "application/xml", array = @ArraySchema(schema =
                     @Schema(implementation = Order.class)))}),
-            @ApiResponse(responseCode = "404", description = "Customer id not found"),
+            @ApiResponse(responseCode = "404", description = "Customer or Vendor id not found"),
             @ApiResponse(responseCode = "500", description = "Internal server error")})
-    @RequestMapping(method = RequestMethod.POST, value = "/order/new/{customerId}", produces = {"application/json",
-        "application/xml"})
-    default ResponseEntity<List<Order>> createOrder(
+    @RequestMapping(method = RequestMethod.POST, value = "/order/new/{customerId}/{vendorId}",
+            produces = {"application/json", "application/xml"})
+    default ResponseEntity<Order> createOrder(
             @Parameter(name = "customerId", description = "ID of customer creating the order", required = true,
-                in = ParameterIn.PATH) @PathVariable("customerId") Long customerId) {
+                in = ParameterIn.PATH) @PathVariable("customerId") Long customerId,
+            @Parameter(name = "vendorId", description = "ID of vendor for which the customer is creating the order",
+                    required = true, in = ParameterIn.PATH) @PathVariable("customerId") Long vendorId) {
         getRequest().ifPresent(request -> {
             for (MediaType mediaType : MediaType.parseMediaTypes(request.getHeader("Accept"))) {
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/json"))) {
-                    String exampleString = "[ { \"price\" : 20.3, \"vendor_id\" : 200, \"rating\" : { \"grade\" : 6, "
-                        + "\"comment\" : \"The food was cold\", \"id\" : 34 }, \"dishes\" : [ { \"price\" : "
-                        + "0.8008281904610115, \"name\" : \"pepperoni pizza\", \"id\" : 10, \"allergens\" : [ \"allergens\","
-                        + " \"allergens\" ] }, { \"price\" : 0.8008281904610115, \"name\" : \"pepperoni pizza\", \"id\" : "
-                        + "10, \"allergens\" : [ \"allergens\", \"allergens\" ] } ], \"location\" : { \"latitude\" : "
-                        + "0.8008281904610115, \"longitude\" : 6.027456183070403 }, \"id\" : 202, \"time\" : "
-                        + "\"2000-01-23T04:56:07.000+00:00\", \"customer_id\" : 201, \"status\" : \"pending\" }, "
-                        + "{ \"price\" : 20.3, \"vendor_id\" : 200, \"rating\" : { \"grade\" : 6, \"comment\" : "
-                        + "\"The food was cold\", \"id\" : 34 }, \"dishes\" : [ { \"price\" : 0.8008281904610115, "
-                        + "\"name\" : \"pepperoni pizza\", \"id\" : 10, \"allergens\" : [ \"allergens\", \"allergens\" ] }, "
-                        + "{ \"price\" : 0.8008281904610115, \"name\" : \"pepperoni pizza\", \"id\" : 10, \"allergens\" : "
-                        + "[ \"allergens\", \"allergens\" ] } ], \"location\" : { \"latitude\" : 0.8008281904610115, "
-                        + "\"longitude\" : 6.027456183070403 }, \"id\" : 202, \"time\" : \"2000-01-23T04:56:07.000+00:00\", "
-                        + "\"customer_id\" : 201, \"status\" : \"pending\" } ]";
+                    String exampleString = "{ \"price\" : 20.3, \"vendor_id\" : 200, "
+                            + "\"rating\" : { \"grade\" : 6, \"comment\" : \"The food was cold\", \"id\" : 34 }, "
+                            + "\"dishes\" : [ { \"price\" : 0.8008281904610115, \"name\" : \"pepperoni pizza\", "
+                            + "\"id\" : 10, \"allergens\" : [ \"allergens\", \"allergens\" ] }, "
+                            + "{ \"price\" : 0.8008281904610115, \"name\" : \"pepperoni pizza\", \"id\" : 10, "
+                            + "\"allergens\" : [ \"allergens\", \"allergens\" ] } ], \"location\" : "
+                            + "{ \"latitude\" : 0.8008281904610115, \"longitude\" : 6.027456183070403 }, "
+                            + "\"id\" : 202, \"time\" : \"2000-01-23T04:56:07.000+00:00\", \"customer_id\" : 201, "
+                            + "\"status\" : \"pending\" }";
                     ApiUtil.setExampleResponse(request, "application/json", exampleString);
                     break;
                 }
                 if (mediaType.isCompatibleWith(MediaType.valueOf("application/xml"))) {
-                    String exampleString = "<Order> <id>202</id> <customer_id>201</customer_id> <vendor_id>200"
-                        + "</vendor_id> <price>20.3</price> <Dish> <id>10</id> <name>pepperoni pizza</name> "
-                        + "<allergens>aeiou</allergens> <price>3.149</price> </Dish> <time>2000-01-23T04:56:07.000Z</time> "
-                        + "<null> <latitude>3.149</latitude> <longitude>3.149</longitude> </null> <null> <id>34</id> "
-                        + "<grade>6</grade> <comment>The food was cold</comment> </null> <status>aeiou</status> </Order>";
+                    String exampleString = "<Order> <id>202</id> <customer_id>201</customer_id> "
+                            + "<vendor_id>200</vendor_id> <price>20.3</price> <Dish> <id>10</id> "
+                            + "<name>pepperoni pizza</name> <allergens>aeiou</allergens> <price>3.149</price> "
+                            + "</Dish> <time>2000-01-23T04:56:07.000Z</time> <null> <latitude>3.149</latitude> "
+                            + "<longitude>3.149</longitude> </null> <null> <id>34</id> <grade>6</grade> "
+                            + "<comment>The food was cold</comment> </null> <status>aeiou</status> </Order>";
                     ApiUtil.setExampleResponse(request, "application/xml", exampleString);
                     break;
                 }

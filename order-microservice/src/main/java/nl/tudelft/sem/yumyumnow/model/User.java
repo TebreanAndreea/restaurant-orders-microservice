@@ -26,6 +26,7 @@ public class User {
 
     /**
      * Constructor.
+     *
      * @param id id of user
      * @param name name of user
      * @param surname surname of user

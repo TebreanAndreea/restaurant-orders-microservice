@@ -35,6 +35,7 @@ public class Rating {
 
     /**
      * Constructor.
+     *
      * @param grade grade of rating
      * @param comment comment of rating
      */

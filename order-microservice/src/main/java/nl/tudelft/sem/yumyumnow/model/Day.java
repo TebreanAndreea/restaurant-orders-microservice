@@ -23,6 +23,7 @@ public class Day {
 
     /**
      * Constructor.
+     *
      * @param open open time
      * @param close close time
      */

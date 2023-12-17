@@ -46,6 +46,7 @@ public class Dish {
 
     /**
      * Constructor.
+     *
      * @param name name of dish
      * @param allergens allergens of dish
      * @param price price of dish

@@ -32,6 +32,7 @@ public class Admin {
 
     /**
      * Constructor.
+     *
      * @param name name of admin
      * @param surname surname of admin
      * @param email email of admin

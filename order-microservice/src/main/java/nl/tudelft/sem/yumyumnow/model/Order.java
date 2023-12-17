@@ -119,6 +119,7 @@ public class Order {
 
     /**
      * Constructor.
+     *
      * @param customerId customerId
      * @param vendorId vendorId
      * @param price price

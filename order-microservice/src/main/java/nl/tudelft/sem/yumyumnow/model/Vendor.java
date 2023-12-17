@@ -40,6 +40,7 @@ public class Vendor {
 
     /**
      * Constructor.
+     *
      * @param id id of vendor
      * @param name name of vendor
      * @param surname surname of vendor

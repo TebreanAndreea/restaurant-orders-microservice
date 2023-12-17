@@ -33,6 +33,7 @@ public class Location {
 
     /**
      * Constructor.
+     *
      * @param latitude latitude of location
      * @param longitude longitude of location
      */
