@@ -7,22 +7,31 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.*;
 import javax.validation.Valid;
 
 /**
  * Customer of YumYUmNow.
  */
 
+@Entity
+@Table(name = "customer")
 public class Customer {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "surname")
     private String surname;
 
+    @Column(name = "email")
     private String email;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Location homeAddress;
 
     /**
@@ -70,32 +79,42 @@ public class Customer {
         }
     }
 
+    @Column(name = "payment_method")
     private PaymentMethodEnum paymentMethod;
 
+    @Column(name = "favourite_foods")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Dish> favouriteFoods;
 
+    @Column(name = "favourite_restaurants")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Vendor> favouriteRestaurants;
 
+    @Column(name = "saved_orders")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Order> savedOrders;
 
+    @Column(name = "past_orders")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Order> pastOrders;
 
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @Column(name = "allergens")
     @Valid
     private List<String> allergens;
 
     /**
-     * Constructor for Customer.
+     * Empty constructor for mapper.
      */
     public Customer() {
-        this.favouriteFoods = new ArrayList<>();
-        this.favouriteRestaurants = new ArrayList<>();
-        this.savedOrders = new ArrayList<>();
-        this.pastOrders = new ArrayList<>();
-        this.allergens = new ArrayList<>();
     }
 
     /**
@@ -243,8 +262,8 @@ public class Customer {
      * @return paymentMethod
      */
 
-    @Schema(name = "paymentMethod", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("paymentMethod")
+    @Schema(name = "payment_method", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("payment_method")
     public PaymentMethodEnum getPaymentMethod() {
         return paymentMethod;
     }
@@ -278,8 +297,8 @@ public class Customer {
      * @return favouriteFoods
      */
     @Valid
-    @Schema(name = "favouriteFoods", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("favouriteFoods")
+    @Schema(name = "favourite_foods", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("favourite_foods")
     public List<@Valid Dish> getFavouriteFoods() {
         return favouriteFoods;
     }
@@ -313,8 +332,8 @@ public class Customer {
      * @return favouriteRestaurants
      */
     @Valid
-    @Schema(name = "favouriteRestaurants", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("favouriteRestaurants")
+    @Schema(name = "favourite_restaurants", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("favourite_restaurants")
     public List<@Valid Vendor> getFavouriteRestaurants() {
         return favouriteRestaurants;
     }
@@ -348,8 +367,8 @@ public class Customer {
      * @return savedOrders
      */
     @Valid
-    @Schema(name = "savedOrders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("savedOrders")
+    @Schema(name = "saved_orders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("saved_orders")
     public List<@Valid Order> getSavedOrders() {
         return savedOrders;
     }
@@ -383,8 +402,8 @@ public class Customer {
      * @return pastOrders
      */
     @Valid
-    @Schema(name = "pastOrders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("pastOrders")
+    @Schema(name = "past_orders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("past_orders")
     public List<@Valid Order> getPastOrders() {
         return pastOrders;
     }
