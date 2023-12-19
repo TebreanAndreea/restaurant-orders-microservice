@@ -117,4 +117,110 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersAdmin(100L).getStatusCode());
         assertEquals(HttpStatus.OK, orderController.getAllOrdersAdmin(101L).getStatusCode());
     }
+
+    /**
+     * Tests the getAllOrdersCustomer method with invalid customer ID.
+     */
+    @Test
+    public void getAllOrdersCustomerInvalidId() {
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isCustomer(101L)).thenReturn(true);
+
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersCustomer(100L).getStatusCode());
+        assertEquals(HttpStatus.OK, orderController.getAllOrdersCustomer(101L).getStatusCode());
+    }
+
+    /**
+     * Tests if the method getAllOrdersCustomer returns a correct List of Orders.
+     */
+    @Test
+    public void testGetAllOrdersCustomer() {
+        Order order1 = new Order();
+        order1.setCustomerId(2L);
+        order1.setVendorId(3L);
+        Order order2 = new Order();
+        order2.setCustomerId(2L);
+        order2.setVendorId(7L);
+        List<Order> orders = new ArrayList<>();
+        orders.add(order1);
+        orders.add(order2);
+
+        Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(orders);
+
+        List<Order> ordersReceived = orderController.getAllOrdersCustomer(2L).getBody();
+        assertNotNull(ordersReceived);
+        assertEquals(2L, ordersReceived.get(0).getCustomerId());
+        assertEquals(3L, ordersReceived.get(0).getVendorId());
+        assertEquals(2L, ordersReceived.get(1).getCustomerId());
+        assertEquals(7L, ordersReceived.get(1).getVendorId());
+        assertEquals(2, ordersReceived.size());
+    }
+
+    /**
+     * Tests if the method getAllOrdersCustomer returns a correct List of Orders if there
+     * are no orders.
+     */
+    @Test
+    public void testGetAllOrdersCustomerNoOrders() {
+        Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(new ArrayList<Order>());
+
+        List<Order> orders = orderController.getAllOrdersCustomer(2L).getBody();
+        assertNotNull(orders);
+        assertEquals(orders, new ArrayList<Order>());
+    }
+
+    /**
+     * Tests the getAllOrdersVendor method with invalid Vendor ID.
+     */
+    @Test
+    public void getAllOrdersVendorInvalidId() {
+        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isVendor(101L)).thenReturn(true);
+
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersVendor(100L).getStatusCode());
+        assertEquals(HttpStatus.OK, orderController.getAllOrdersVendor(101L).getStatusCode());
+    }
+
+    /**
+     * Tests if the method getAllOrdersVendor returns a correct List of Orders.
+     */
+    @Test
+    public void testGetAllOrdersVendor() {
+        Order order1 = new Order();
+        order1.setCustomerId(1L);
+        order1.setVendorId(3L);
+        Order order2 = new Order();
+        order2.setCustomerId(2L);
+        order2.setVendorId(3L);
+        List<Order> orders = new ArrayList<>();
+        orders.add(order1);
+        orders.add(order2);
+
+        Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenReturn(orders);
+
+        List<Order> ordersReceived = orderController.getAllOrdersVendor(3L).getBody();
+        assertNotNull(ordersReceived);
+        assertEquals(1L, ordersReceived.get(0).getCustomerId());
+        assertEquals(3L, ordersReceived.get(0).getVendorId());
+        assertEquals(2L, ordersReceived.get(1).getCustomerId());
+        assertEquals(3L, ordersReceived.get(1).getVendorId());
+        assertEquals(2, ordersReceived.size());
+    }
+
+    /**
+     * Tests if the method getAllOrdersVendor returns a correct List of Orders if there
+     * are no orders.
+     */
+    @Test
+    public void testGetAllOrdersVendorNoOrders() {
+        Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenReturn(new ArrayList<Order>());
+
+        List<Order> orders = orderController.getAllOrdersVendor(2L).getBody();
+        assertNotNull(orders);
+        assertEquals(orders, new ArrayList<Order>());
+    }
 }

@@ -77,4 +77,94 @@ public class OrderServiceTest {
         assertTrue(storedOrder.isEmpty());
         assertEquals(storedOrder.size(), 0);
     }
+
+    /**
+     * Tests if the method getAllOrdersForCustomer returns a correct List of Orders.
+     */
+    @Test
+    public void testGetAllOrdersForCustomer() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(1L, 14L);
+
+
+        List<Order> storedOrder = this.orderService.getAllOrdersForCustomer(1L);
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+
+        assertEquals(order1, storedOrder.get(0));
+        assertEquals(order2, storedOrder.get(1));
+        assertEquals(storedOrder.size(), 2);
+    }
+
+    /**
+     * Tests if the method getAllOrdersForCustomer returns a correct List of Orders if there are orders
+     * in the database but none belonging to the customer.
+     */
+    @Test
+    public void testGetAllOrdersForCustomerNoOrdersForCustomer() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(1L, 14L);
+
+        List<Order> storedOrder = this.orderService.getAllOrdersForCustomer(2L);
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+        assertEquals("findAll", this.orderRepository.getMethodCalls().get(2));
+        assertTrue(storedOrder.isEmpty());
+        assertEquals(storedOrder.size(), 0);
+    }
+
+    /**
+     * Tests if the method getAllOrders returns a correct List of Orders if there are no orders in the database.
+     */
+    @Test
+    public void testGetAllOrdersForCustomerNoOrders() {
+        List<Order> storedOrder = this.orderService.getAllOrdersForCustomer(1L);
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("findAll", this.orderRepository.getMethodCalls().get(0));
+        assertTrue(storedOrder.isEmpty());
+        assertEquals(storedOrder.size(), 0);
+    }
+
+    /**
+     * Tests if the method getAllOrdersForVendor returns a correct List of Orders.
+     */
+    @Test
+    public void testGetAllOrdersForVendor() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(3L, 14L);
+
+
+        List<Order> storedOrder = this.orderService.getAllOrdersForVendor(14L);
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+
+        assertEquals(order1, storedOrder.get(0));
+        assertEquals(order2, storedOrder.get(1));
+        assertEquals(storedOrder.size(), 2);
+    }
+
+    /**
+     * Tests if the method getAllOrdersForVendor returns a correct List of Orders if there are orders
+     * in the database but none belonging to the Vendor.
+     */
+    @Test
+    public void testGetAllOrdersForVendorNoOrdersForVendor() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(1L, 14L);
+
+        List<Order> storedOrder = this.orderService.getAllOrdersForVendor(2L);
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+        assertEquals("findAll", this.orderRepository.getMethodCalls().get(2));
+        assertTrue(storedOrder.isEmpty());
+        assertEquals(storedOrder.size(), 0);
+    }
+
+    /**
+     * Tests if the method getAllOrders returns a correct List of Orders if there are no orders in the database.
+     */
+    @Test
+    public void testGetAllOrdersForVendorNoOrders() {
+        List<Order> storedOrder = this.orderService.getAllOrdersForVendor(1L);
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("findAll", this.orderRepository.getMethodCalls().get(0));
+        assertTrue(storedOrder.isEmpty());
+        assertEquals(storedOrder.size(), 0);
+    }
 }
