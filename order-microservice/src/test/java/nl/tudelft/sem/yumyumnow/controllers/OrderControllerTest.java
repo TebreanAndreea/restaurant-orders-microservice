@@ -3,6 +3,8 @@ package nl.tudelft.sem.yumyumnow.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
@@ -11,9 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
-
-import java.util.ArrayList;
-import java.util.List;
 
 public class OrderControllerTest {
 
