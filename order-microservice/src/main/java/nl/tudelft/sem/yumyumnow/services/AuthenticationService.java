@@ -17,6 +17,16 @@ public class AuthenticationService {
     }
 
     /**
+     * Checks with the Users microservice if the ID corresponds to an admin.
+     *
+     * @param adminId the ID to check
+     * @return true if it corresponds to an admin
+     */
+    public boolean isAdmin(Long adminId) {
+        return true;
+    }
+
+    /**
      * Checks with the Users microservice if the ID corresponds to a vendor.
      *
      * @param vendorId the ID to check

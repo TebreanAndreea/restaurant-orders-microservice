@@ -1,5 +1,6 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.util.List;
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Order;
@@ -48,5 +49,13 @@ public class OrderService {
         order.setCustomerId(customerId);
         order.setVendorId(vendorId);
         return this.orderRepository.save(order);
+    }
+
+    /** Get all orders in the system.
+     *
+     * @return all orders in the system.
+     */
+    public List<Order> getAllOrders() {
+        return this.orderRepository.findAll();
     }
 }
