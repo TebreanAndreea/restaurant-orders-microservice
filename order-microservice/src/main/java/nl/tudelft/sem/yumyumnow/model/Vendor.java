@@ -36,7 +36,7 @@ public class Vendor {
     private Location location;
 
     @OneToOne(cascade = CascadeType.ALL)
-    private subOpeningTimes openingHours;
+    private SubOpeningTimes openingHours;
 
     @Column(name = "delivery_radius")
     private Integer deliveryRadius;
@@ -66,7 +66,7 @@ public class Vendor {
      * @param dishes dishes of vendor
      */
     public Vendor(String name, String surname, String email, String restaurantName,
-        Location location, subOpeningTimes openingHours, Integer deliveryRadius,
+        Location location, SubOpeningTimes openingHours, Integer deliveryRadius,
         List<Dish> dishes) {
         this.name = name;
         this.surname = surname;
@@ -204,7 +204,7 @@ public class Vendor {
         this.location = location;
     }
 
-    public Vendor openingHours(subOpeningTimes openingHours) {
+    public Vendor openingHours(SubOpeningTimes openingHours) {
         this.openingHours = openingHours;
         return this;
     }
@@ -221,7 +221,7 @@ public class Vendor {
         return openingHours;
     }
 
-    public void setOpeningHours(subOpeningTimes openingHours) {
+    public void setOpeningHours(SubOpeningTimes openingHours) {
         this.openingHours = openingHours;
     }
 

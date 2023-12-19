@@ -29,10 +29,12 @@ public class OpeningTimes {
     /**
      * Empty constructor.
      */
-    public OpeningTimes(){
+    public OpeningTimes() {
     }
 
     /**
+     * Constructor.
+     *
      * @param monday opening / closing times on mondays
      * @param tuesday opening / closing times on tuesdays
      * @param wednesday opening / closing times on wednesdays
