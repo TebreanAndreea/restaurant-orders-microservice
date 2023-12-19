@@ -38,7 +38,7 @@ public class Vendor {
     @Column(name = "email")
     private String email;
 
-    @Column(name = "restaurant_name")
+    @Column(name = "restaurantName")
     private String restaurantName;
 
     @OneToOne(cascade = CascadeType.ALL)
@@ -47,7 +47,7 @@ public class Vendor {
     @OneToOne(cascade = CascadeType.ALL)
     private SubOpeningTimes openingHours;
 
-    @Column(name = "delivery_radius")
+    @Column(name = "deliveryRadius")
     private Integer deliveryRadius;
 
     @Column(name = "dishes")
@@ -182,8 +182,8 @@ public class Vendor {
      * @return restaurantName
      */
 
-    @Schema(name = "restaurant_name", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("restaurant_name")
+    @Schema(name = "restaurantName", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("restaurantName")
     public String getRestaurantName() {
         return restaurantName;
     }
@@ -224,8 +224,8 @@ public class Vendor {
      * @return openingHours
      */
     @Valid
-    @Schema(name = "opening_hours", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("opening_hours")
+    @Schema(name = "openingHours", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("openingHours")
     public OpeningTimes getOpeningHours() {
         return openingHours;
     }
@@ -245,8 +245,8 @@ public class Vendor {
      * @return deliveryRadius
      */
 
-    @Schema(name = "delivery_radius", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("delivery_radius")
+    @Schema(name = "deliveryRadius", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("deliveryRadius")
     public Integer getDeliveryRadius() {
         return deliveryRadius;
     }

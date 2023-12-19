@@ -89,28 +89,28 @@ public class Customer {
         }
     }
 
-    @Column(name = "payment_method")
+    @Column(name = "paymentMethod")
     private PaymentMethodEnum paymentMethod;
 
-    @Column(name = "favourite_foods")
+    @Column(name = "favouriteFoods")
     @OrderColumn
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Dish> favouriteFoods;
 
-    @Column(name = "favourite_restaurants")
+    @Column(name = "favouriteRestaurants")
     @OrderColumn
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Vendor> favouriteRestaurants;
 
-    @Column(name = "saved_orders")
+    @Column(name = "savedOrders")
     @OrderColumn
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Order> savedOrders;
 
-    @Column(name = "past_orders")
+    @Column(name = "pastOrders")
     @OrderColumn
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
@@ -272,8 +272,8 @@ public class Customer {
      * @return paymentMethod
      */
 
-    @Schema(name = "payment_method", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("payment_method")
+    @Schema(name = "paymentMethod", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("paymentMethod")
     public PaymentMethodEnum getPaymentMethod() {
         return paymentMethod;
     }
@@ -307,8 +307,8 @@ public class Customer {
      * @return favouriteFoods
      */
     @Valid
-    @Schema(name = "favourite_foods", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("favourite_foods")
+    @Schema(name = "favouriteFoods", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("favouriteFoods")
     public List<@Valid Dish> getFavouriteFoods() {
         return favouriteFoods;
     }
@@ -342,8 +342,8 @@ public class Customer {
      * @return favouriteRestaurants
      */
     @Valid
-    @Schema(name = "favourite_restaurants", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("favourite_restaurants")
+    @Schema(name = "favouriteRestaurants", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("favouriteRestaurants")
     public List<@Valid Vendor> getFavouriteRestaurants() {
         return favouriteRestaurants;
     }
@@ -377,8 +377,8 @@ public class Customer {
      * @return savedOrders
      */
     @Valid
-    @Schema(name = "saved_orders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("saved_orders")
+    @Schema(name = "savedOrders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("savedOrders")
     public List<@Valid Order> getSavedOrders() {
         return savedOrders;
     }
@@ -412,8 +412,8 @@ public class Customer {
      * @return pastOrders
      */
     @Valid
-    @Schema(name = "past_orders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-    @JsonProperty("past_orders")
+    @Schema(name = "pastOrders", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+    @JsonProperty("pastOrders")
     public List<@Valid Order> getPastOrders() {
         return pastOrders;
     }
