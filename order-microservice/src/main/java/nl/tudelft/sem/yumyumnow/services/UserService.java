@@ -20,6 +20,10 @@ public class UserService {
      * @return location
      */
     public Location getDefaultHomeAddress(Long customerId) {
-        return restTemplate.getForEntity(url + "/customer/location/" + customerId, Location.class).getBody();
+        Location location = restTemplate.getForEntity(url + "/customer/location/" + customerId, Location.class).getBody();
+        if(location == null) {
+            return new Location();
+        }
+        return location;
     }
 }

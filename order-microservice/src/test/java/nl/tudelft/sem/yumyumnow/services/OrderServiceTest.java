@@ -2,12 +2,17 @@ package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
 public class OrderServiceTest {
@@ -24,7 +29,7 @@ public class OrderServiceTest {
     @BeforeEach
     public void setup() {
         this.orderRepository = new TestOrderRepository();
-        this.userService = new UserService(new RestTemplate());
+        this.userService = mock(UserService.class);
         this.orderService = new OrderService(this.orderRepository, this.userService);
     }
 
@@ -40,6 +45,8 @@ public class OrderServiceTest {
 
     @Test
     public void testAddOrder() {
+        when(userService.getDefaultHomeAddress(1L))
+            .thenReturn(new Location());
         Order order = this.orderService.createNewOrder(1L, 14L);
 
         assertEquals(1, this.orderRepository.getMethodCalls().size());
