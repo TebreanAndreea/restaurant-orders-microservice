@@ -3,7 +3,6 @@ package nl.tudelft.sem.yumyumnow.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import nl.tudelft.sem.yumyumnow.commons.OrderEntity;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
@@ -34,7 +33,7 @@ public class OrderControllerTest {
      */
     @Test
     public void testInvalidIds() {
-        OrderEntity order = new OrderEntity();
+        Order order = new Order();
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
         Mockito.when(this.authenticationService.isCustomer(101L)).thenReturn(true);
         Mockito.when(this.authenticationService.isVendor(250L)).thenReturn(false);
@@ -52,7 +51,7 @@ public class OrderControllerTest {
      */
     @Test
     public void testOrderIsOk() {
-        OrderEntity order = new OrderEntity();
+        Order order = new Order();
         order.setCustomerId(2L);
         order.setVendorId(3L);
         Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
