@@ -37,9 +37,15 @@ public class SubOpeningTimes extends OpeningTimes {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (!(o instanceof SubOpeningTimes)) return false;
-        if (!super.equals(o)) return false;
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof SubOpeningTimes)) {
+            return false;
+        }
+        if (!super.equals(o)) {
+            return false;
+        }
         SubOpeningTimes that = (SubOpeningTimes) o;
         return Objects.equals(id, that.id);
     }
