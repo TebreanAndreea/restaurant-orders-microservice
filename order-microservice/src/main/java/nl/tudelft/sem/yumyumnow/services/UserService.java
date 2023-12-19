@@ -21,7 +21,7 @@ public class UserService {
      */
     public Location getDefaultHomeAddress(Long customerId) {
         Location location = restTemplate.getForEntity(url + "/customer/location/" + customerId, Location.class).getBody();
-        if(location == null) {
+        if (location == null) {
             return new Location();
         }
         return location;
