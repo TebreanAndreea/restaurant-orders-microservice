@@ -454,17 +454,24 @@ paths:
         '500':
           description: Internal server error
 
-  /order/new/{customerId}:
+  /order/new/{customerId}/{vendorId}:
     post:
       tags:
         - order
-      summary: Creates a new order for the given customer
-      description: Creates a new order object for the given customer
+      summary: Creates a new order for the given customer at the given vendor
+      description: Creates a new order object for the given customer at the given vendor
       operationId: createOrder
       parameters:
         - name: customerId
           in: path
           description: ID of customer creating the order
+          required: true
+          schema:
+            type: integer
+            format: int64
+        - name: vendorId
+          in: path
+          description: ID of vendor for which the customer is creating the order
           required: true
           schema:
             type: integer
@@ -475,14 +482,12 @@ paths:
           content:
             application/json:
               schema:
-                items:
-                  $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/Order'
             application/xml:
               schema:
-                items:
-                  $ref: '#/components/schemas/Order'
+                $ref: '#/components/schemas/Order'
         '404':
-          description: Customer id not found
+          description: Customer or Vendor id not found
         '500':
           description: Internal server error
 
@@ -1204,6 +1209,7 @@ components:
         id:
           type: integer
           format: int64
+          x-field-extra-annotation: '@javax.persistence.Id @javax.persistence.Column(name = "userId", insertable = false, updatable = false)'
           example: 10
         name:
           type: string
@@ -1214,41 +1220,49 @@ components:
         email:
           type: string
           example: peter@gmail.com
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"orders\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
     Customer:
       allOf:
         - $ref: '#/components/schemas/User'
         - type: object
           properties:
             home_address:
-              $ref: '#/components/schemas/Location'
+                $ref: '#/components/schemas/Location'
             paymentMethod:
               type: string
               enum: [ cash, Visa, Maestro, appleWallet ]
             favouriteFoods:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 $ref: '#/components/schemas/Dish'
             favouriteRestaurants:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 $ref: '#/components/schemas/Vendor'
             savedOrders:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 $ref: '#/components/schemas/Order'
             pastOrders:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 $ref: '#/components/schemas/Order'
             allergens:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 type: string
-
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"admins\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
+      x-field-extra-annotation: "@javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL)"
     Admin:
       allOf:
         - $ref: '#/components/schemas/User'
         - type: object
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"admins\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
     Vendor:
       allOf:
         - $ref: '#/components/schemas/User'
@@ -1265,13 +1279,17 @@ components:
               format: int32
             dishes:
               type: array
+              x-field-extra-annotation: '@javax.persistence.ElementCollection'
               items:
                 $ref: '#/components/schemas/Dish'
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"vendors\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
+      x-field-extra-annotation: "@javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL)"
     Order:
       type: object
       properties:
-        id:
+        order_id:
           type: integer
+          x-field-extra-annotation: '@javax.persistence.Id'
           format: int64
           example: 202
         customer_id:
@@ -1288,6 +1306,7 @@ components:
           example: 20.3
         dishes:
           type: array
+          x-field-extra-annotation: '@javax.persistence.ElementCollection'
           items:
             $ref: '#/components/schemas/Dish'
         time:
@@ -1296,17 +1315,22 @@ components:
           example: "Today at 19:00"
         location:
           $ref: '#/components/schemas/Location'
-        rating:
-          $ref: '#/components/schemas/Rating'
+        rating_id:
+          type: integer
+          format: int64
+          example: 2023
         status:
           type: string
           enum: [ pending, accepted, rejected, preparing, given to courier, on-transit, delivered ]
-
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"orders\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
+      x-field-extra-annotation: "@javax.persistence.OneToOne(cascade = javax.persistence.CascadeType.ALL)"
     Rating:
       type: object
+      x-class-extra-annotation: '@javax.persistence.Entity'
       properties:
         id:
           type: integer
+          x-field-extra-annotation: '@javax.persistence.Id'
           format: int64
           example: 34
         grade:
@@ -1317,9 +1341,16 @@ components:
           type: string
           example: "The food was cold"
 
+
     Location:
       type: object
+      x-field-extra-annotation: "@javax.persistence.Embedded"
+      x-class-extra-annotation: "@javax.persistence.Embeddable @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
       properties:
+        id:
+          type: integer
+          format: int64
+          example: 34
         latitude:
           type: number
           format: double
@@ -1329,9 +1360,11 @@ components:
 
     Dish:
       type: object
+      x-class-extra-annotation: '@javax.persistence.Entity'
       properties:
         id:
           type: integer
+          x-field-extra-annotation: '@javax.persistence.Id'
           format: int64
           example: 10
         name:
@@ -1339,14 +1372,18 @@ components:
           example: "pepperoni pizza"
         allergens:
           type: array
+          x-field-extra-annotation: '@javax.persistence.ElementCollection'
           items:
             type: string
         price:
           type: number
           format: double
+      x-field-extra-annotation: '@javax.persistence.Id @javax.persistence.ElementCollection'
 
     OpeningTimes:
       type: object
+      x-field-extra-annotation: "@javax.persistence.Embedded"
+      x-class-extra-annotation: "@javax.persistence.Embeddable @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
       properties:
         monday:
           $ref: '#/components/schemas/Day'
@@ -1364,12 +1401,16 @@ components:
           $ref: '#/components/schemas/Day'
     Day:
       type: object
+      x-field-extra-annotation: "@javax.persistence.Embedded"
+      x-class-extra-annotation: "@javax.persistence.Embeddable @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
       properties:
         open:
           type: string
+          x-field-extra-annotation: '@javax.persistence.Column(name = "openingTime", insertable = false, updatable = false)'
           format: time
           example: 09:00
-        close:
+        closed:
           type: string
+          x-field-extra-annotation: '@javax.persistence.Column(name = "closingTime", insertable = false, updatable = false)'
           format: time
           example: 22:00
