@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
@@ -35,5 +36,17 @@ class UserServiceTest {
 
         assertEquals(location, result);
         verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/123", Location.class);
+    }
+
+    @Test
+    void noAddressTest() {
+        Location location = new Location();
+        when(restTemplate.getForEntity("http://localhost:8081/customer/location/124", Location.class))
+            .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
+
+        Location result = userService.getDefaultHomeAddress((long) 124);
+
+        assertEquals(location, result);
+        verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/124", Location.class);
     }
 }
