@@ -15,15 +15,19 @@ public class OrderService {
 
 
     private final OrderRepository orderRepository;
+    private final UserService userService;
+
 
     /**
      * Creates a new Order Service.
      *
-     * @param repository the DB instance where the Orders are stored
+     * @param repository  the DB instance where the Orders are stored
+     * @param userService an instance of the user service
      */
     @Autowired
-    public OrderService(OrderRepository repository) {
+    public OrderService(OrderRepository repository, UserService userService) {
         this.orderRepository = repository;
+        this.userService = userService;
     }
 
 
@@ -36,20 +40,21 @@ public class OrderService {
      */
     public Order getOrderById(Long orderId) {
         return this.orderRepository.findById(orderId).orElseThrow(
-                () -> new NoSuchElementException("No order exists with id " + orderId));
+            () -> new NoSuchElementException("No order exists with id " + orderId));
     }
 
     /**
      * Creates a new Order object for the given customer and vendor.
      *
      * @param customerId ID of customer creating the order
-     * @param vendorId ID of vendor for which the customer is creating the order
+     * @param vendorId   ID of vendor for which the customer is creating the order
      * @return the new Order object, stored in the DB
      */
     public Order createNewOrder(Long customerId, Long vendorId) {
         Order order = new Order();
         order.setCustomerId(customerId);
         order.setVendorId(vendorId);
+        order.setLocation(userService.getDefaultHomeAddress(customerId));
         return this.orderRepository.save(order);
     }
 
