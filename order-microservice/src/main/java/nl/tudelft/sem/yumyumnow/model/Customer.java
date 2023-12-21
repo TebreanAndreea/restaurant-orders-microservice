@@ -7,22 +7,41 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.ElementCollection;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 import javax.validation.Valid;
 
 /**
  * Customer of YumYUmNow.
  */
 
+@Entity
+@Table(name = "customer")
 public class Customer {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "surname")
     private String surname;
 
+    @Column(name = "email")
     private String email;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Location homeAddress;
 
     /**
@@ -70,32 +89,42 @@ public class Customer {
         }
     }
 
+    @Column(name = "paymentMethod")
     private PaymentMethodEnum paymentMethod;
 
+    @Column(name = "favouriteFoods")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Dish> favouriteFoods;
 
+    @Column(name = "favouriteRestaurants")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Vendor> favouriteRestaurants;
 
+    @Column(name = "savedOrders")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Order> savedOrders;
 
+    @Column(name = "pastOrders")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Order> pastOrders;
 
+    @ElementCollection(targetClass = String.class, fetch = FetchType.EAGER)
+    @Column(name = "allergens")
     @Valid
     private List<String> allergens;
 
     /**
-     * Constructor for Customer.
+     * Empty constructor for mapper.
      */
     public Customer() {
-        this.favouriteFoods = new ArrayList<>();
-        this.favouriteRestaurants = new ArrayList<>();
-        this.savedOrders = new ArrayList<>();
-        this.pastOrders = new ArrayList<>();
-        this.allergens = new ArrayList<>();
     }
 
     /**

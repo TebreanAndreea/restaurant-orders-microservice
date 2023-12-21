@@ -5,35 +5,59 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.persistence.CascadeType;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.FetchType;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.OneToMany;
+import javax.persistence.OneToOne;
+import javax.persistence.OrderColumn;
+import javax.persistence.Table;
 import javax.validation.Valid;
 
 /**
  * Vendor of YumYUmNow.
  */
 
+@Entity
+@Table(name = "vendor")
 public class Vendor {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "surname")
     private String surname;
 
+    @Column(name = "email")
     private String email;
 
+    @Column(name = "restaurantName")
     private String restaurantName;
 
+    @OneToOne(cascade = CascadeType.ALL)
     private Location location;
 
-    private OpeningTimes openingHours;
+    @OneToOne(cascade = CascadeType.ALL)
+    private SubOpeningTimes openingHours;
 
+    @Column(name = "deliveryRadius")
     private Integer deliveryRadius;
 
+    @Column(name = "dishes")
+    @OrderColumn
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
     @Valid
     private List<@Valid Dish> dishes;
 
     /**
-     * Empty constructor.
+     * Empty constructor for mapper.
      */
     public Vendor() {
     }
@@ -41,7 +65,6 @@ public class Vendor {
     /**
      * Constructor.
      *
-     * @param id id of vendor
      * @param name name of vendor
      * @param surname surname of vendor
      * @param email email of vendor
@@ -51,10 +74,9 @@ public class Vendor {
      * @param deliveryRadius delivery radius of vendor
      * @param dishes dishes of vendor
      */
-    public Vendor(Long id, String name, String surname, String email, String restaurantName,
-        Location location, OpeningTimes openingHours, Integer deliveryRadius,
+    public Vendor(String name, String surname, String email, String restaurantName,
+        Location location, SubOpeningTimes openingHours, Integer deliveryRadius,
         List<Dish> dishes) {
-        this.id = id;
         this.name = name;
         this.surname = surname;
         this.email = email;
@@ -191,7 +213,7 @@ public class Vendor {
         this.location = location;
     }
 
-    public Vendor openingHours(OpeningTimes openingHours) {
+    public Vendor openingHours(SubOpeningTimes openingHours) {
         this.openingHours = openingHours;
         return this;
     }
@@ -208,7 +230,7 @@ public class Vendor {
         return openingHours;
     }
 
-    public void setOpeningHours(OpeningTimes openingHours) {
+    public void setOpeningHours(SubOpeningTimes openingHours) {
         this.openingHours = openingHours;
     }
 

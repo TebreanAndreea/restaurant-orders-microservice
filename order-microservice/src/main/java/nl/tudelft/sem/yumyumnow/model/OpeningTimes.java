@@ -26,6 +26,33 @@ public class OpeningTimes {
 
     private Day sunday;
 
+    /**
+     * Empty constructor.
+     */
+    public OpeningTimes() {
+    }
+
+    /**
+     * Constructor.
+     *
+     * @param monday opening / closing times on mondays
+     * @param tuesday opening / closing times on tuesdays
+     * @param wednesday opening / closing times on wednesdays
+     * @param thursday opening / closing times on thursdays
+     * @param friday opening / closing times on fridays
+     * @param saturday opening / closing times on saturdays
+     * @param sunday opening / closing times on sundays
+     */
+    public OpeningTimes(Day monday, Day tuesday, Day wednesday, Day thursday, Day friday, Day saturday, Day sunday) {
+        this.monday = monday;
+        this.tuesday = tuesday;
+        this.wednesday = wednesday;
+        this.thursday = thursday;
+        this.friday = friday;
+        this.saturday = saturday;
+        this.sunday = sunday;
+    }
+
     public OpeningTimes monday(Day monday) {
         this.monday = monday;
         return this;
