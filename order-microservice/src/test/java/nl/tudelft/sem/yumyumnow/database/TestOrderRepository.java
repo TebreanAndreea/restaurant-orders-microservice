@@ -54,7 +54,7 @@ public class TestOrderRepository implements OrderRepository {
     @Override
     public void deleteById(Long id) {
         call("deleteById");
-        this.orders.removeIf(x -> x.getId().equals(id));
+        this.orders.removeIf(x -> x.getOrderId().equals(id));
     }
 
     @Override
@@ -68,9 +68,9 @@ public class TestOrderRepository implements OrderRepository {
         call("save");
         long id = this.orders.size();
         if (id > 0) {
-            id = Math.max(id, this.orders.get((int) id - 1).getId());
+            id = Math.max(id, this.orders.get((int) id - 1).getOrderId());
         }
-        entity.setId(id);
+        entity.setOrderId(id);
         this.orders.add(entity);
         return entity;
     }
@@ -78,13 +78,13 @@ public class TestOrderRepository implements OrderRepository {
     @Override
     public Optional<Order> findById(Long id) {
         call("findById");
-        return this.orders.stream().filter(x -> x.getId().equals(id)).findFirst();
+        return this.orders.stream().filter(x -> x.getOrderId().equals(id)).findFirst();
     }
 
     @Override
     public boolean existsById(Long id) {
         call("existsById");
-        return this.orders.stream().anyMatch(x -> x.getId().equals(id));
+        return this.orders.stream().anyMatch(x -> x.getOrderId().equals(id));
     }
 
     @Override
