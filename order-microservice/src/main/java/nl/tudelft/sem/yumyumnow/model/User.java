@@ -3,23 +3,35 @@ package nl.tudelft.sem.yumyumnow.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * User of YumYUmNow.
  */
 
+@Entity
+@Table(name = "user")
 public class User {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "surname")
     private String surname;
 
+    @Column(name = "email")
     private String email;
 
     /**
-     * Empty constructor.
+     * Empty constructor for mapper.
      */
     public User() {
     }
@@ -27,13 +39,11 @@ public class User {
     /**
      * Constructor.
      *
-     * @param id id of user
      * @param name name of user
      * @param surname surname of user
      * @param email email of user
      */
-    public User(Long id, String name, String surname, String email) {
-        this.id = id;
+    public User(String name, String surname, String email) {
         this.name = name;
         this.surname = surname;
         this.email = email;

@@ -3,29 +3,35 @@ package nl.tudelft.sem.yumyumnow.model;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import io.swagger.v3.oas.annotations.media.Schema;
 import java.util.Objects;
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.Id;
+import javax.persistence.Table;
 
 /**
  * Admin of YumYUmNow.
  */
 
-
+@Entity
+@Table(name = "admin")
 public class Admin {
 
+    @Id
+    @GeneratedValue(strategy = javax.persistence.GenerationType.AUTO)
     private Long id;
 
+    @Column(name = "name")
     private String name;
 
+    @Column(name = "surname")
     private String surname;
 
+    @Column(name = "email")
     private String email;
 
-    public Admin id(Long id) {
-        this.id = id;
-        return this;
-    }
-
     /**
-     * Empty constructor.
+     * Empty constructor for mapper.
      */
     public Admin() {
     }
@@ -41,6 +47,11 @@ public class Admin {
         this.name = name;
         this.surname = surname;
         this.email = email;
+    }
+
+    public Admin id(Long id) {
+        this.id = id;
+        return this;
     }
 
     /**

@@ -1,6 +1,9 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -53,5 +56,49 @@ public class OrderService {
         order.setVendorId(vendorId);
         order.setLocation(userService.getDefaultHomeAddress(customerId));
         return this.orderRepository.save(order);
+    }
+
+    /** Get all orders in the system.
+     *
+     * @return all orders in the system.
+     */
+    public List<Order> getAllOrders() {
+        return this.orderRepository.findAll();
+    }
+
+    /** Get all orders in the system for a customer.
+     *
+     * @param customerId The id of the customer.
+     * @return The list of all orders for the customer.
+     */
+    public List<Order> getAllOrdersForCustomer(Long customerId) {
+        List<Order> allOrders = this.orderRepository.findAll();
+        List<Order> allOrdersForCustomer = new ArrayList<>();
+
+        for (Order o : allOrders) {
+            if (Objects.equals(o.getCustomerId(), customerId)) {
+                allOrdersForCustomer.add(o);
+            }
+        }
+
+        return allOrdersForCustomer;
+    }
+
+    /** Get all orders in the system for a vendor.
+     *
+     * @param vendorId The id of the vendor.
+     * @return The list of all orders for the vendor.
+     */
+    public List<Order> getAllOrdersForVendor(Long vendorId) {
+        List<Order> allOrders = this.orderRepository.findAll();
+        List<Order> allOrdersForVendor = new ArrayList<>();
+
+        for (Order o : allOrders) {
+            if (Objects.equals(o.getVendorId(), vendorId)) {
+                allOrdersForVendor.add(o);
+            }
+        }
+
+        return allOrdersForVendor;
     }
 }
