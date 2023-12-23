@@ -1,11 +1,16 @@
 package nl.tudelft.sem.yumyumnow.services;
 
-import java.util.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+
 
 
 @Service
@@ -102,6 +107,7 @@ public class OrderService {
 
     /**
      * Let an admin modify an order.
+     *
      * @param orderId The id of the order that will be modified.
      * @param newOrder The new order the old order will be modified to.
      * @return The modified order.

@@ -98,6 +98,7 @@ public class OrderController implements OrderApi {
 
     /**
      * Let an admin modify an order.
+     *
      * @param orderId The order to be modified.
      * @param adminId The id of the admin modifying the order.
      * @param newOrder The new order the old order will be modified to.
@@ -109,10 +110,11 @@ public class OrderController implements OrderApi {
         } else {
             Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
 
-            if (modifiedOrder == null)
+            if (modifiedOrder == null) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            else
-                return ResponseEntity.of(Optional.of(modifiedOrder));
+            }
+
+            return ResponseEntity.of(Optional.of(modifiedOrder));
         }
     }
 }
