@@ -1,9 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.NoSuchElementException;
-import java.util.Objects;
+import java.util.*;
+
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -100,5 +98,23 @@ public class OrderService {
         }
 
         return allOrdersForVendor;
+    }
+
+    /**
+     * Let an admin modify an order.
+     * @param orderId The id of the order that will be modified.
+     * @param newOrder The new order the old order will be modified to.
+     * @return The modified order.
+     */
+    public Order modifyOrderAdmin(Long orderId, Order newOrder) {
+        Optional<Order> modifiedOrderOptional = this.orderRepository.findById(orderId);
+
+        if (modifiedOrderOptional.isPresent()) {
+            Order modifiedOrder = newOrder;
+            modifiedOrder.setOrderId(orderId);
+            this.orderRepository.save(modifiedOrder);
+            return modifiedOrder;
+        }
+        return null;
     }
 }

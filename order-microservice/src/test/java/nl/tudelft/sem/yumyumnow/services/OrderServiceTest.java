@@ -1,8 +1,6 @@
 package nl.tudelft.sem.yumyumnow.services;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -173,5 +171,37 @@ public class OrderServiceTest {
         assertEquals("findAll", this.orderRepository.getMethodCalls().get(0));
         assertTrue(storedOrder.isEmpty());
         assertEquals(storedOrder.size(), 0);
+    }
+
+    /**
+     * Tests the modifyOrderAdmin method when the orderId is found.
+     */
+    @Test
+    public void modifyOrderAdmin() {
+        Order order = this.orderService.createNewOrder(1L, 14L);
+        Order newOrder = new Order();
+        newOrder.setCustomerId(5L);
+        newOrder.setVendorId(9L);
+
+        Order modifiedOrder = this.orderService.modifyOrderAdmin(order.getOrderId(), newOrder);
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertEquals(modifiedOrder.getCustomerId(), 5L);
+        assertEquals(modifiedOrder.getVendorId(), 9L);
+        assertNotEquals(modifiedOrder.getCustomerId(), 1L);
+        assertNotEquals(modifiedOrder.getVendorId(), 14L);
+    }
+
+    /**
+     * Tests the modifyOrderAdmin method when the orderId is not found.
+     */
+    @Test
+    public void modifyOrderAdminNotFound() {
+        Order order = this.orderService.createNewOrder(1L, 14L);
+
+        Order modifiedOrder = this.orderService.modifyOrderAdmin(2L, order);
+        assertEquals(2, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertNull(modifiedOrder);
     }
 }
