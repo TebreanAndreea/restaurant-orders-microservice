@@ -1,10 +1,12 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import lombok.Getter;
 import nl.tudelft.sem.yumyumnow.services.requests.GetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+@Getter
 @Service
 public class AuthenticationService {
 
@@ -15,7 +17,6 @@ public class AuthenticationService {
     public AuthenticationService(IntegrationService integrationService) {
         this.integrationService = integrationService;
     }
-
 
     /**
      * Checks with the Users microservice if the ID corresponds to a customer.
@@ -35,7 +36,8 @@ public class AuthenticationService {
      * @return true if it corresponds to an admin
      */
     public boolean isAdmin(Long adminId) {
-        return true;
+        String role = "admin";
+        return role.equalsIgnoreCase(this.getRole(adminId));
     }
 
     /**

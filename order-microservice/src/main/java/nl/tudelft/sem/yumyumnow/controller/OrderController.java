@@ -6,6 +6,8 @@ import nl.tudelft.sem.yumyumnow.api.OrderApi;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
+import nl.tudelft.sem.yumyumnow.services.completion.OrderPaymentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -115,6 +117,38 @@ public class OrderController implements OrderApi {
             }
 
             return ResponseEntity.of(Optional.of(modifiedOrder));
+        }
+    }
+
+
+    /**
+     * A customer can complete an order, that is triggering the payment process, and the order is then sent for
+     * preparation and delivery.
+     *
+     * @param orderId ID of the order that is completed (required)
+     * @param userId ID of user who made the order (required)
+     * @return the order status.
+     */
+    @Override
+    public ResponseEntity<String> completeOrder(Long orderId, Long userId) {
+        try {
+            if (!this.authenticationService.isCustomer(userId)) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            } else if (!this.orderService.existsAtId(orderId)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            } else {
+                Order order = this.orderService.getOrderById(orderId);
+                OrderCompletionHandler handler =
+                        new OrderPaymentHandler(this.authenticationService.getIntegrationService());
+                Order.StatusEnum status = handler.handleOrderCompletion(order);
+                boolean saved = this.orderService.setOrderStatus(orderId, status);
+                if (!saved) {
+                    throw new RuntimeException("Save operation failed");
+                }
+                return ResponseEntity.ok(status.getValue());
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
