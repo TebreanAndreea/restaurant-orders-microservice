@@ -9,6 +9,10 @@ public class UserService {
     private RestTemplate restTemplate;
     private String url = "http://localhost:8081";
 
+    public UserService() {
+        this.restTemplate = new RestTemplate();
+    }
+
     public UserService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
