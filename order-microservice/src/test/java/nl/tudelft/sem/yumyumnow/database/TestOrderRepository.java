@@ -2,6 +2,7 @@ package nl.tudelft.sem.yumyumnow.database;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.data.domain.Example;
@@ -66,11 +67,11 @@ public class TestOrderRepository implements OrderRepository {
     @Override
     public <S extends Order> S save(S entity) {
         call("save");
-        long id = this.orders.size();
-        if (id > 0) {
-            id = Math.max(id, this.orders.get((int) id - 1).getOrderId());
+        if (entity.getOrderId() == null) {
+            long id = this.orders.stream().mapToLong(Order::getOrderId).max().orElse(0) + 1;
+            entity.setOrderId(id);
         }
-        entity.setOrderId(id);
+        this.orders.removeIf(x -> x.getOrderId().equals(entity.getOrderId()));
         this.orders.add(entity);
         return entity;
     }

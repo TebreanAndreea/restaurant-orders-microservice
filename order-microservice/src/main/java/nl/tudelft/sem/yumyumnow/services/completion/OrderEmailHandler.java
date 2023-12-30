@@ -6,10 +6,12 @@ import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 public class OrderEmailHandler extends OrderCompletionHandler {
 
     /**
-     * Initializes an instance of the Payment Handler. The next handler is the delivery handler.
+     * Initializes an instance of the Email Handler.
+     *
+     * @param nextHandler the next Order completion handler. Can be null.
      */
-    public OrderEmailHandler(IntegrationService integrationService) {
-        super(new OrderDeliveryHandler(integrationService));
+    public OrderEmailHandler(OrderCompletionHandler nextHandler) {
+        super(nextHandler);
     }
 
     /**

@@ -5,9 +5,10 @@ import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.OrderApi;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
+import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
-import nl.tudelft.sem.yumyumnow.services.completion.OrderPaymentHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -18,17 +19,21 @@ public class OrderController implements OrderApi {
 
     private final OrderService orderService;
     private final AuthenticationService authenticationService;
+    private final CompletionFactory orderCompletionService;
 
     /**
      * Creates an instance of the controller with its required services.
      *
      * @param orderService          a service managing Order objects
      * @param authenticationService a service managing authentication
+     * @param orderCompletionService a service creating the handlers for an order completion
      */
     @Autowired
-    public OrderController(OrderService orderService, AuthenticationService authenticationService) {
+    public OrderController(OrderService orderService, AuthenticationService authenticationService,
+                           CompletionFactory orderCompletionService) {
         this.orderService = orderService;
         this.authenticationService = authenticationService;
+        this.orderCompletionService = orderCompletionService;
     }
 
 
@@ -138,9 +143,10 @@ public class OrderController implements OrderApi {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             } else {
                 Order order = this.orderService.getOrderById(orderId);
-                OrderCompletionHandler handler =
-                        new OrderPaymentHandler(this.authenticationService.getIntegrationService());
-                Order.StatusEnum status = handler.handleOrderCompletion(order);
+                IntegrationService integration = this.authenticationService.getIntegrationService();
+                OrderCompletionHandler firstHandler = this.orderCompletionService
+                        .createCompletionResponsibilityChain(integration);
+                Order.StatusEnum status = firstHandler.handleOrderCompletion(order);
                 boolean saved = this.orderService.setOrderStatus(orderId, status);
                 if (!saved) {
                     throw new RuntimeException("Save operation failed");

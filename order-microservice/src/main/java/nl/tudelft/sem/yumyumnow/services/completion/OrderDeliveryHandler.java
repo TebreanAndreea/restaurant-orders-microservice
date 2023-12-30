@@ -11,11 +11,13 @@ public class OrderDeliveryHandler extends OrderCompletionHandler {
     private final IntegrationService integrationService;
 
     /**
-     * Initializes an instance of the Payment Handler.
-     * It is the last handler of the Chain of Responsibility.
+     * Initializes an instance of the Order Delivery Handler.
+     *
+     * @param integrationService the IntegrationService needed to communicate with the other microservices.
+     * @param nextHandler the next Order completion handler.
      */
-    public OrderDeliveryHandler(IntegrationService integrationService) {
-        super();
+    public OrderDeliveryHandler(IntegrationService integrationService, OrderCompletionHandler nextHandler) {
+        super(nextHandler);
         this.integrationService = integrationService;
     }
 
@@ -51,6 +53,11 @@ public class OrderDeliveryHandler extends OrderCompletionHandler {
         if (!statusResponse.getStatusCode().is2xxSuccessful()) {
             return order.getStatus();
         }
-        return new DeliveryStatus(statusResponse.getBody()).getDefaultStatus();
+        Order.StatusEnum newStatus = new DeliveryStatus(statusResponse.getBody()).getDefaultStatus();
+        order.setStatus(newStatus);
+        if (this.nextHandler != null) {
+            return this.nextHandler.handleOrderCompletion(order);
+        }
+        return newStatus;
     }
 }

@@ -12,7 +12,7 @@ public class DeliveryStatus {
      * @param status the string value of the status, in a valid format for the delivery microservice
      */
     public DeliveryStatus(String status) {
-        this.status = status;
+        this.status = status == null ? "" : status;
     }
 
 
@@ -29,13 +29,13 @@ public class DeliveryStatus {
         String temp = status.getValue();
         int length = temp.length();
         for (int i = 0; i < length; i++) {
-            if (i == 0 || temp.charAt(i - 1) == ' ') {
+            if (i == 0 || temp.charAt(i - 1) == ' ' || temp.charAt(i - 1) == '-') {
                 temp = temp.substring(0, i)
                         + temp.substring(i, i + 1).toUpperCase()
                         + temp.substring(i + 1, length);
             }
         }
-        this.status = temp.replace(' ', '_');
+        this.status = temp.replace(' ', '_').replace('-', '_');
     }
 
     /**
@@ -57,7 +57,9 @@ public class DeliveryStatus {
             return Order.StatusEnum.REJECTED;
         }
         try {
-            return Order.StatusEnum.fromValue(this.status.toLowerCase().replace('_', ' '));
+            boolean isOnTransit = this.status.equalsIgnoreCase("On_Transit");
+            return isOnTransit ? Order.StatusEnum.ON_TRANSIT :
+                    Order.StatusEnum.fromValue(this.status.toLowerCase().replace('_', ' '));
         } catch (IllegalArgumentException e) {
             return Order.StatusEnum.REJECTED;
         }

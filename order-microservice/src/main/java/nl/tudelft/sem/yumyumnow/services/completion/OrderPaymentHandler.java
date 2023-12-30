@@ -1,16 +1,17 @@
 package nl.tudelft.sem.yumyumnow.services.completion;
 
 import nl.tudelft.sem.yumyumnow.model.Order;
-import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 
 public class OrderPaymentHandler extends OrderCompletionHandler {
 
 
     /**
-     * Initializes an instance of the Payment Handler. The next handler is the email handler.
+     * Initializes an instance of the Payment Handler.
+     *
+     * @param nextHandler the next Order completion handler.
      */
-    public OrderPaymentHandler(IntegrationService integrationService) {
-        super(new OrderEmailHandler(integrationService));
+    public OrderPaymentHandler(OrderCompletionHandler nextHandler) {
+        super(nextHandler);
     }
 
     /**
