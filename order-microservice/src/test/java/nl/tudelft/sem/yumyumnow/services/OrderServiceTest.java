@@ -8,9 +8,11 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.junit.jupiter.api.BeforeEach;
@@ -204,6 +206,69 @@ public class OrderServiceTest {
         Order order = this.orderService.createNewOrder(1L, 14L);
 
         Order modifiedOrder = this.orderService.modifyOrderAdmin(2L, order);
+        assertEquals(2, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertNull(modifiedOrder);
+    }
+
+    /**
+     * Tests the addDishesToOrder method when the orderId is found, but there were no previous dishes.
+     */
+    @Test
+    public void addDishesToOrderNoPreviousDishes() {
+        Order order = this.orderService.createNewOrder(1L, 14L);
+        Dish d1 = new Dish();
+        Dish d2 = new Dish();
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(d1);
+        dishes.add(d2);
+
+        final List<Dish> allDishes = this.orderService.addDishesToOrder(order.getOrderId(), dishes);
+        Order modifiedOrder = this.orderService.getOrderById(order.getOrderId());
+        assertTrue(!modifiedOrder.getDishes().isEmpty());
+        assertEquals(4, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertEquals(dishes, modifiedOrder.getDishes());
+        assertEquals(modifiedOrder.getDishes().size(), 2);
+        assertEquals(dishes, allDishes);
+    }
+
+    /**
+     * Tests the addDishesToOrder method when the orderId is found.
+     */
+    @Test
+    public void addDishesToOrder() {
+        final Dish d1 = new Dish();
+        final Dish d2 = new Dish();
+        Dish d3 = new Dish();
+        Dish d4 = new Dish();
+        Order order = this.orderService.createNewOrder(1L, 14L);
+        order.addDishesItem(d3);
+        order.addDishesItem(d4);
+        this.orderService.modifyOrderAdmin(order.getOrderId(), order);
+
+
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(d1);
+        dishes.add(d2);
+
+        List<Dish> allDishes = this.orderService.addDishesToOrder(order.getOrderId(), dishes);
+        Order modifiedOrder = this.orderService.getOrderById(order.getOrderId());
+        assertTrue(!modifiedOrder.getDishes().isEmpty());
+        assertEquals(6, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertEquals(dishes, modifiedOrder.getDishes());
+        assertEquals(modifiedOrder.getDishes().size(), 4);
+    }
+
+    /**
+     * Tests the addDishesToOrder method when the orderId is not found.
+     */
+    @Test
+    public void addDishesToOrderNotFound() {
+        Order order = this.orderService.createNewOrder(1L, 14L);
+
+        List<Dish> modifiedOrder = this.orderService.addDishesToOrder(2L, new ArrayList<Dish>());
         assertEquals(2, this.orderRepository.getMethodCalls().size());
         assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
         assertNull(modifiedOrder);

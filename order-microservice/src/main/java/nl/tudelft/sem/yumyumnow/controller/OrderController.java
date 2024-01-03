@@ -3,6 +3,7 @@ package nl.tudelft.sem.yumyumnow.controller;
 import java.util.List;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.OrderApi;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
@@ -115,6 +116,30 @@ public class OrderController implements OrderApi {
             }
 
             return ResponseEntity.of(Optional.of(modifiedOrder));
+        }
+    }
+
+    /**
+     * Add multiple dishes to order.
+     *
+     * @param orderId The id of the order we want to add dishes to.
+     * @param customerId The id of the customer.
+     * @param dishesToAdd The list of dishes that will be added to the order
+     * @return The list of all dishes of the order.
+     */
+    public ResponseEntity<List<Dish>> addDishesToOrder(Long orderId, Long customerId, List<Dish> dishesToAdd) {
+        if (!this.authenticationService.isCustomer(customerId)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else if (dishesToAdd.isEmpty()) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            List<Dish> allDishesFromOrder = this.orderService.addDishesToOrder(orderId, dishesToAdd);
+
+            if (allDishesFromOrder == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.of(Optional.of(allDishesFromOrder));
         }
     }
 }
