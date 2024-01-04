@@ -95,4 +95,26 @@ public class OrderController implements OrderApi {
             return ResponseEntity.of(Optional.of(allOrders));
         }
     }
+
+    /**
+     * Let an admin modify an order.
+     *
+     * @param orderId The order to be modified.
+     * @param adminId The id of the admin modifying the order.
+     * @param newOrder The new order the old order will be modified to.
+     * @return The modified order
+     */
+    public ResponseEntity<Order> modifyOrderAdmin(Long orderId, Long adminId, Order newOrder) {
+        if (!this.authenticationService.isAdmin(adminId)) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        } else {
+            Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
+
+            if (modifiedOrder == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            return ResponseEntity.of(Optional.of(modifiedOrder));
+        }
+    }
 }
