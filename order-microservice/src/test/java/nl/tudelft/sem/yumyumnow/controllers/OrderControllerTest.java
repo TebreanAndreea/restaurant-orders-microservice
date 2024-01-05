@@ -1,11 +1,14 @@
 package nl.tudelft.sem.yumyumnow.controllers;
 
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.ArrayList;
 import java.util.List;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
@@ -308,5 +311,73 @@ public class OrderControllerTest {
         ResponseEntity<String> result = this.orderController.completeOrder(445L, 332L);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("preparing", result.getBody());
+    }
+
+    /**
+     * Tests the addDishesToOrder method with invalid customer ID.
+     */
+    @Test
+    public void addDishesToOrderInvalidCustomerId() {
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
+
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.addDishesToOrder(100L, 100L,
+                new ArrayList<Dish>()).getStatusCode());
+    }
+
+    /**
+     * Tests the addDishesToOrder method when the list of dishes to add is empty.
+     */
+    @Test
+    public void addDishesToOrderNoDishes() {
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+
+        assertEquals(HttpStatus.BAD_REQUEST, orderController.addDishesToOrder(100L,
+                100L, new ArrayList<Dish>()).getStatusCode());
+    }
+
+    /**
+     * Tests the addDishesToOrder method when the order id is not found.
+     */
+    @Test
+    public void addDishesToOrderNotFound() {
+        Dish d1 = new Dish();
+        Dish d2 = new Dish();
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(d1);
+        dishes.add(d2);
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.addDishesToOrder(Mockito.anyLong(), Mockito.any(List.class))).thenReturn(null);
+
+        assertEquals(HttpStatus.NOT_FOUND, orderController.addDishesToOrder(100L, 100L, dishes).getStatusCode());
+    }
+
+    /**
+     * Tests the addDishesToOrder method.
+     */
+    @Test
+    public void addDishesToOrder() {
+        Dish d1 = new Dish();
+        Dish d2 = new Dish();
+        final Dish d3 = new Dish();
+        final Dish d4 = new Dish();
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(d1);
+        dishes.add(d2);
+        List<Dish> allDishes = new ArrayList<>();
+        allDishes.add(d1);
+        allDishes.add(d2);
+        allDishes.add(d3);
+        allDishes.add(d4);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.addDishesToOrder(Mockito.anyLong(), Mockito.any(List.class))).thenReturn(allDishes);
+
+        List<Dish> allDishesAfterAdding = orderController.addDishesToOrder(2L, 100L, dishes).getBody();
+        assert allDishesAfterAdding != null;
+        assertTrue(allDishesAfterAdding.contains(d1));
+        assertTrue(allDishesAfterAdding.contains(d2));
+        assertTrue(allDishesAfterAdding.contains(d3));
+        assertTrue(allDishesAfterAdding.contains(d4));
+        assertEquals(allDishesAfterAdding, allDishes);
     }
 }

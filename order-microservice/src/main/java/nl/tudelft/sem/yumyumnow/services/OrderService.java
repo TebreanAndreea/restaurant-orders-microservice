@@ -7,6 +7,7 @@ import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -146,5 +147,28 @@ public class OrderService {
      */
     public boolean existsAtId(Long orderId) {
         return this.orderRepository.existsById(orderId);
+    }
+
+    /**
+     * Add multiple dishes to order.
+     *
+     * @param orderId The id of the order we want to add dishes to.
+     * @param dishes The list of dishes that will be added to the order.
+     * @return The list of dishes in the order after adding them.
+     */
+    public List<Dish> addDishesToOrder(Long orderId, List<Dish> dishes) {
+        Optional<Order> modifiedOrderOptional = this.orderRepository.findById(orderId);
+        List<Dish> allDishes = dishes;
+        if (modifiedOrderOptional.isPresent()) {
+            Order modifiedOrder = modifiedOrderOptional.get();
+            List<Dish> allDishesInTheOrder = modifiedOrder.getDishes();
+            if (allDishesInTheOrder != null) {
+                allDishes.addAll(allDishesInTheOrder);
+            }
+            modifiedOrder.setDishes(allDishes);
+            this.orderRepository.save(modifiedOrder);
+            return allDishes;
+        }
+        return null;
     }
 }
