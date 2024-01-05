@@ -126,6 +126,30 @@ public class OrderService {
     }
 
     /**
+     * Updates the status of an order, and saves the changes to the DB.
+     *
+     * @param orderId the order to modify.
+     * @param status the new order status.
+     * @return true if the order was modified successfully.
+     */
+    public boolean setOrderStatus(Long orderId, Order.StatusEnum status) {
+        Order order = getOrderById(orderId);
+        order.setStatus(status);
+        Order saved = this.orderRepository.save(order);
+        return saved.getStatus() == status;
+    }
+
+    /**
+     * Checks if an order belongs to the specified id in the DB.
+     *
+     * @param orderId the order id to check.
+     * @return true if an order is associated to the ID in the DB.
+     */
+    public boolean existsAtId(Long orderId) {
+        return this.orderRepository.existsById(orderId);
+    }
+
+    /**
      * Add multiple dishes to order.
      *
      * @param orderId The id of the order we want to add dishes to.

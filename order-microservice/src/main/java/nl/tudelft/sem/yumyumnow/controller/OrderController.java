@@ -6,7 +6,10 @@ import nl.tudelft.sem.yumyumnow.api.OrderApi;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
+import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
+import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,17 +20,21 @@ public class OrderController implements OrderApi {
 
     private final OrderService orderService;
     private final AuthenticationService authenticationService;
+    private final CompletionFactory orderCompletionService;
 
     /**
      * Creates an instance of the controller with its required services.
      *
      * @param orderService          a service managing Order objects
      * @param authenticationService a service managing authentication
+     * @param orderCompletionService a service creating the handlers for an order completion
      */
     @Autowired
-    public OrderController(OrderService orderService, AuthenticationService authenticationService) {
+    public OrderController(OrderService orderService, AuthenticationService authenticationService,
+                           CompletionFactory orderCompletionService) {
         this.orderService = orderService;
         this.authenticationService = authenticationService;
+        this.orderCompletionService = orderCompletionService;
     }
 
 
@@ -116,6 +123,38 @@ public class OrderController implements OrderApi {
             }
 
             return ResponseEntity.of(Optional.of(modifiedOrder));
+        }
+    }
+
+    /**
+     * A customer can complete an order, that is triggering the payment process, and the order is then sent for
+     * preparation and delivery.
+     *
+     * @param orderId ID of the order that is completed (required)
+     * @param userId ID of user who made the order (required)
+     * @return the order status.
+     */
+    @Override
+    public ResponseEntity<String> completeOrder(Long orderId, Long userId) {
+        try {
+            if (!this.authenticationService.isCustomer(userId)) {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            } else if (!this.orderService.existsAtId(orderId)) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            } else {
+                Order order = this.orderService.getOrderById(orderId);
+                IntegrationService integration = this.authenticationService.getIntegrationService();
+                OrderCompletionHandler firstHandler = this.orderCompletionService
+                        .createCompletionResponsibilityChain(integration);
+                Order.StatusEnum status = firstHandler.handleOrderCompletion(order);
+                boolean saved = this.orderService.setOrderStatus(orderId, status);
+                if (!saved) {
+                    throw new RuntimeException("Save operation failed");
+                }
+                return ResponseEntity.ok(status.getValue());
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

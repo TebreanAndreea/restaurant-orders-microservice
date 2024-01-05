@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -55,7 +56,7 @@ public class OrderServiceTest {
         assertEquals(1, this.orderRepository.getMethodCalls().size());
         assertEquals("save", this.orderRepository.getMethodCalls().get(0));
 
-        Order storedOrder = this.orderService.getOrderById(0L);
+        Order storedOrder = this.orderService.getOrderById(1L);
         assertEquals(order.getCustomerId(), storedOrder.getCustomerId());
         assertEquals(order.getVendorId(), storedOrder.getVendorId());
     }
@@ -209,6 +210,24 @@ public class OrderServiceTest {
         assertEquals(2, this.orderRepository.getMethodCalls().size());
         assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
         assertNull(modifiedOrder);
+    }
+
+    @Test
+    public void testOrderExists() {
+        Order order = new Order().orderId(12L);
+        this.orderRepository.save(order);
+        assertTrue(this.orderService.existsAtId(12L));
+        assertFalse(this.orderService.existsAtId(20L));
+        assertEquals("existsById", this.orderRepository.getMethodCalls().get(2));
+    }
+
+    @Test
+    public void testSetOrderStatus() {
+        Order order = new Order().orderId(998L).status(Order.StatusEnum.PREPARING);
+        this.orderRepository.save(order);
+        assertEquals(Order.StatusEnum.PREPARING, this.orderService.getOrderById(998L).getStatus());
+        this.orderService.setOrderStatus(998L, Order.StatusEnum.ON_TRANSIT);
+        assertEquals(Order.StatusEnum.ON_TRANSIT, this.orderService.getOrderById(998L).getStatus());
     }
 
     /**

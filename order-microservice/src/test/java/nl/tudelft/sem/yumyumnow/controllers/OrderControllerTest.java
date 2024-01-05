@@ -12,16 +12,27 @@ import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
+import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 public class OrderControllerTest {
 
     private OrderService orderService;
     private AuthenticationService authenticationService;
+    private CompletionFactory orderCompletionService;
     private OrderController orderController;
+
+    private OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
+        @Override
+        public Order.StatusEnum handleOrderCompletion(Order order) {
+            return Order.StatusEnum.PREPARING;
+        }
+    };
 
     /**
      * Setup of the mocked objects before each test.
@@ -30,7 +41,8 @@ public class OrderControllerTest {
     public void setup() {
         this.orderService = Mockito.mock(OrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
-        this.orderController = new OrderController(orderService, authenticationService);
+        this.orderCompletionService = Mockito.mock(CompletionFactory.class);
+        this.orderController = new OrderController(orderService, authenticationService, orderCompletionService);
     }
 
     /**
@@ -265,6 +277,40 @@ public class OrderControllerTest {
         assertEquals(2L, orderReceived.getOrderId());
         assertEquals(3L, orderReceived.getCustomerId());
         assertEquals(4L, orderReceived.getVendorId());
+    }
+
+    @Test
+    public void testCompleteOrderInvalidRequests() {
+        Mockito.when(this.authenticationService.isCustomer(332L)).thenReturn(false);
+        Mockito.when(this.orderService.existsAtId(6767L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isCustomer(8L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(445L)).thenReturn(true);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, this.orderController.completeOrder(445L, 332L).getStatusCode());
+        assertEquals(HttpStatus.UNAUTHORIZED, this.orderController.completeOrder(6767L, 332L).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, this.orderController.completeOrder(6767L, 8L).getStatusCode());
+    }
+
+    @Test
+    public void testNotSavedCorrectly() {
+        Mockito.when(this.authenticationService.isCustomer(332L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(445L)).thenReturn(true);
+        Mockito.when(this.orderCompletionService.createCompletionResponsibilityChain(Mockito.any()))
+                .thenReturn(stubCompletionHandler);
+        Mockito.when(this.orderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(false);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController.completeOrder(445L, 332L).getStatusCode());
+    }
+
+    @Test
+    public void testSavedCorrectly() {
+        Mockito.when(this.authenticationService.isCustomer(332L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(445L)).thenReturn(true);
+        Mockito.when(this.orderCompletionService.createCompletionResponsibilityChain(Mockito.any()))
+                .thenReturn(stubCompletionHandler);
+        Mockito.when(this.orderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(true);
+        ResponseEntity<String> result = this.orderController.completeOrder(445L, 332L);
+        assertEquals(HttpStatus.OK, result.getStatusCode());
+        assertEquals("preparing", result.getBody());
     }
 
     /**
