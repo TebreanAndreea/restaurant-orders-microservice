@@ -4,7 +4,7 @@ info:
   description: Group 09a Software Engineering Management 23/24
   version: 1.0.0
 servers:
-  - url: 'https://localhost:8082'
+  - url: 'http://localhost:8082'
 tags:
   - name: vendor
     description: A user who owns a restaurant
@@ -526,7 +526,7 @@ paths:
           description: The location that needs to be updated
           required: true
           schema:
-            type: string
+            $ref: '#/components/schemas/Location'
         - name: status
           in: query
           description: The status of the order that needs to be updated
