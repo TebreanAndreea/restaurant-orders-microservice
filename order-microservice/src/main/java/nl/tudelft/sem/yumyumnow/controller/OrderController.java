@@ -2,6 +2,7 @@ package nl.tudelft.sem.yumyumnow.controller;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import javax.validation.Valid;
 import nl.tudelft.sem.yumyumnow.api.OrderApi;
@@ -187,6 +188,7 @@ public class OrderController implements OrderApi {
 
     /**
      * Updates an order and saves it to the DB.
+     * If a parameter is null, the corresponding order attribute will not be updated.
      *
      * @param orderId  ID of order that needs to be updated (required)
      * @param userId   ID of user that wants to update (required)
@@ -209,7 +211,7 @@ public class OrderController implements OrderApi {
 
         Order.StatusEnum orderStatus;
         try {
-            orderStatus = Order.StatusEnum.fromValue(status);
+            orderStatus = (status == null || status.isEmpty()) ? null : Order.StatusEnum.fromValue(status);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }

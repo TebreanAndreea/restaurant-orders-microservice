@@ -413,13 +413,19 @@ public class OrderControllerTest {
         Mockito.when(this.orderService.existsAtId(16L)).thenReturn(true);
         Mockito.when(this.orderService.getOrderById(16L)).thenReturn(order);
         Mockito.when(this.authenticationService.isAdmin(2L)).thenReturn(true);
+        Mockito.when(this.orderService.updateOrder(Mockito.any(), Mockito.any(), Mockito.any(),
+                Mockito.any(), Mockito.any())).thenReturn(true);
 
         assertEquals(HttpStatus.BAD_REQUEST, this.orderController
-                .modifyOrder(16L, 2L, List.of(), null, "", null)
+                .modifyOrder(16L, 2L, List.of(), null, "haha", null)
                 .getStatusCode());
 
-        assertEquals(HttpStatus.BAD_REQUEST, this.orderController
+        assertEquals(HttpStatus.OK, this.orderController
                 .modifyOrder(16L, 3L, List.of(), null, "", null)
+                .getStatusCode());
+
+        assertEquals(HttpStatus.OK, this.orderController
+                .modifyOrder(16L, 3L, List.of(), null, null, null)
                 .getStatusCode());
     }
 
