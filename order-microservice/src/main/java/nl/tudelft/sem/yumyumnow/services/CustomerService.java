@@ -44,6 +44,6 @@ public class CustomerService {
             return null;
         }
 
-        return restTemplate.postForEntity(url + "/customer/location/" + customerId, location, Location.class).getBody();
+        return restTemplate.postForEntity(url + "/customer/homeAddress/" + customerId, location, Location.class).getBody();
     }
 }

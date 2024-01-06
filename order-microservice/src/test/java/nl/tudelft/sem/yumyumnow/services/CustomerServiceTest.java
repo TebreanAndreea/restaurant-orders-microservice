@@ -55,13 +55,13 @@ class CustomerServiceTest {
         Location location = new Location();
         location.setLatitude(123.56);
         location.setLongitude(345.78);
-        when(restTemplate.postForEntity("http://localhost:8081/customer/location/123", location, Location.class))
+        when(restTemplate.postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
         Location result = customerService.setDefaultHomeAddress((long) 123, location);
 
         assertEquals(location, result);
-        verify(restTemplate, times(1)).postForEntity("http://localhost:8081/customer/location/123", location, Location.class);
+        verify(restTemplate, times(1)).postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class);
     }
 
     @Test
@@ -69,12 +69,12 @@ class CustomerServiceTest {
         Location location = new Location();
         location.setLatitude(123.56);
         location.setLongitude(345.78);
-        when(restTemplate.postForEntity("http://localhost:8081/customer/location/123", location, Location.class))
+        when(restTemplate.postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
         Location result = customerService.setDefaultHomeAddress((long) 123, null);
 
         assertNull(result);
-        verify(restTemplate, times(0)).postForEntity("http://localhost:8081/customer/location/123", location, Location.class);
+        verify(restTemplate, times(0)).postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class);
     }
 }
