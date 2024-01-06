@@ -8,6 +8,7 @@ import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.DishService;
+import nl.tudelft.sem.yumyumnow.services.VendorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class VendorController implements VendorApi {
 
     private final DishService dishService;
+    private final VendorService vendorService;
     private final AuthenticationService authenticationService;
     private final VendorRepository vendorRepository;
 
@@ -28,9 +30,11 @@ public class VendorController implements VendorApi {
      * @param vendorRepository a repository handling Vendor data access and operations
      */
     @Autowired
-    public VendorController(DishService dishService, AuthenticationService authenticationService,
+    public VendorController(DishService dishService, VendorService vendorService,
+                            AuthenticationService authenticationService,
                             VendorRepository vendorRepository) {
         this.dishService = dishService;
+        this.vendorService = vendorService;
         this.authenticationService = authenticationService;
         this.vendorRepository = vendorRepository;
     }
@@ -60,13 +64,15 @@ public class VendorController implements VendorApi {
 
     @Override
     public ResponseEntity<List<Dish>> getVendorDishes(Long vendorId, Long customerId) {
-        Vendor vendor = vendorRepository.findById(vendorId)
-            .orElse(null);
-
-        if (vendor == null) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        if (this.authenticationService.isCustomer(customerId)) {
+            List<Dish> dishes = vendorService.getVendorDishes(vendorId);
+            if (dishes != null)  {
+                return new ResponseEntity<>(dishes, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
-
-        return new ResponseEntity<>(vendor.getDishes(), HttpStatus.OK);
     }
 }
