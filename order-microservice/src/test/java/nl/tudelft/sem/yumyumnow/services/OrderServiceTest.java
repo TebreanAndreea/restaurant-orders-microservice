@@ -9,6 +9,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -291,5 +292,43 @@ public class OrderServiceTest {
         assertEquals(2, this.orderRepository.getMethodCalls().size());
         assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
         assertNull(modifiedOrder);
+    }
+
+    @Test
+    public void modifyOrderSuccess() {
+        Order order = new Order().orderId(11L).vendorId(12L).customerId(13L).location(new Location(1L, 0.0D, 0.0D))
+                .price(14.5D).dishes(new ArrayList<>()).status(Order.StatusEnum.PREPARING).time(OffsetDateTime.MIN);
+
+        this.orderRepository.save(order);
+
+        Dish dish = new Dish().id(20L).name("Fish and Chips").allergens(List.of("gluten", "fish"));
+        Location newLoc = new Location(2L, 180.0D, 180.0D);
+        Order.StatusEnum status = Order.StatusEnum.ACCEPTED;
+        OffsetDateTime time = OffsetDateTime.now();
+        boolean success = this.orderService.updateOrder(11L, List.of(dish), newLoc, status, time);
+        assertTrue(success);
+        Order saved = this.orderService.getOrderById(11L);
+        assertEquals(status, saved.getStatus());
+        assertEquals(time, saved.getTime());
+        assertEquals(newLoc, saved.getLocation());
+        assertEquals(dish, saved.getDishes().get(0));
+    }
+
+    @Test
+    public void modifyOrderNotFound() {
+        Order order = new Order().orderId(11L).vendorId(12L).customerId(13L).location(new Location(1L, 0.0D, 0.0D))
+                .price(14.5D).dishes(new ArrayList<>()).status(Order.StatusEnum.PREPARING).time(OffsetDateTime.MIN);
+
+        this.orderRepository.save(order);
+
+        Dish dish = new Dish().id(20L).name("Fish and Chips").allergens(List.of("gluten", "fish"));
+        Location newLoc = new Location(2L, 180.0D, 180.0D);
+        Order.StatusEnum status = Order.StatusEnum.ACCEPTED;
+        OffsetDateTime time = OffsetDateTime.now();
+
+        assertThrows(NoSuchElementException.class, () -> {
+            this.orderService.updateOrder(15L, List.of(dish), newLoc, status, time);
+        }, "No order exists with id 15");
+
     }
 }

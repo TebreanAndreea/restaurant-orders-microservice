@@ -5,10 +5,13 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
@@ -27,7 +30,7 @@ public class OrderControllerTest {
     private CompletionFactory orderCompletionService;
     private OrderController orderController;
 
-    private OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
+    private final OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
             return Order.StatusEnum.PREPARING;
@@ -379,5 +382,104 @@ public class OrderControllerTest {
         assertTrue(allDishesAfterAdding.contains(d3));
         assertTrue(allDishesAfterAdding.contains(d4));
         assertEquals(allDishesAfterAdding, allDishes);
+    }
+
+
+    @Test
+    public void testModifyOrderNotFound() {
+        Mockito.when(this.orderService.existsAtId(15L)).thenReturn(false);
+        assertEquals(HttpStatus.NOT_FOUND, this.orderController
+                .modifyOrder(15L, 1L, List.of(), null, "", null)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testModifyOrderUnauthorized() {
+        Order order = new Order().orderId(16L).customerId(3L);
+
+        Mockito.when(this.orderService.existsAtId(16L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(16L)).thenReturn(order);
+        Mockito.when(this.authenticationService.isAdmin(2L)).thenReturn(false);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, this.orderController
+                .modifyOrder(16L, 2L, List.of(), null, "", null)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testModifyOrderInvalidStatus() {
+        Order order = new Order().orderId(16L).customerId(3L);
+
+        Mockito.when(this.orderService.existsAtId(16L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(16L)).thenReturn(order);
+        Mockito.when(this.authenticationService.isAdmin(2L)).thenReturn(true);
+
+        assertEquals(HttpStatus.BAD_REQUEST, this.orderController
+                .modifyOrder(16L, 2L, List.of(), null, "", null)
+                .getStatusCode());
+
+        assertEquals(HttpStatus.BAD_REQUEST, this.orderController
+                .modifyOrder(16L, 3L, List.of(), null, "", null)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testModifyOrderOk() {
+        Order order = new Order().orderId(25L).customerId(6L);
+
+        List<Dish> dishes = List.of(new Dish().id(111L).name("Pizza !!!"));
+        OffsetDateTime time = OffsetDateTime.now();
+        Location loc = new Location(9L, 3.0D, 51.0D);
+
+        Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
+        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+                .thenReturn(true);
+
+        String status = "on-transit";
+
+        assertEquals(HttpStatus.OK, this.orderController
+                .modifyOrder(25L, 6L, dishes, loc, status, time)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testModifyOrderInternalError() {
+        Order order = new Order().orderId(25L).customerId(6L);
+
+        List<Dish> dishes = List.of(new Dish().id(111L).name("Pizza !!!"));
+        OffsetDateTime time = OffsetDateTime.now();
+        Location loc = new Location(9L, 3.0D, 51.0D);
+
+        Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
+        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+                .thenReturn(false);
+
+        String status = "on-transit";
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
+                .modifyOrder(25L, 6L, dishes, loc, status, time)
+                .getStatusCode());
+    }
+
+    @Test
+    public void testModifyOrderInternalError2() {
+        Order order = new Order().orderId(25L).customerId(6L);
+
+        List<Dish> dishes = List.of(new Dish().id(111L).name("Pizza !!!"));
+        OffsetDateTime time = OffsetDateTime.now();
+        Location loc = new Location(9L, 3.0D, 51.0D);
+
+        Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
+        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+                .thenThrow(new NoSuchElementException("No order exists with id 25"));
+
+        String status = "on-transit";
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
+                .modifyOrder(25L, 6L, dishes, loc, status, time)
+                .getStatusCode());
     }
 }

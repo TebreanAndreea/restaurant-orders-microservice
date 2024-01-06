@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -8,10 +9,10 @@ import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 
 @Service
@@ -170,5 +171,25 @@ public class OrderService {
             return allDishes;
         }
         return null;
+    }
+
+    /**
+     * Updates an order by ID and saves it to the DB.
+     *
+     * @param orderId the ID of the order to modify
+     * @param dishes the new list of dishes
+     * @param location the new delivery location
+     * @param status the new order status
+     * @param time the new delivery time
+     * @return true if the order was successfully updated
+     */
+    public boolean updateOrder(Long orderId, List<Dish> dishes, Location location,
+                               Order.StatusEnum status, OffsetDateTime time) {
+        Order order = this.getOrderById(orderId);
+        order.dishes(dishes).location(location).status(status).time(time);
+        Order saved = this.orderRepository.save(order);
+        return Objects.equals(saved.getOrderId(), orderId) && Objects.equals(saved.getLocation(), location)
+                && Objects.equals(saved.getStatus(), status) && Objects.equals(saved.getTime(), time)
+                && dishes.equals(saved.getDishes());
     }
 }

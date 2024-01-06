@@ -1,9 +1,12 @@
 package nl.tudelft.sem.yumyumnow.controller;
 
+import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
+import javax.validation.Valid;
 import nl.tudelft.sem.yumyumnow.api.OrderApi;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.IntegrationService;
@@ -25,8 +28,8 @@ public class OrderController implements OrderApi {
     /**
      * Creates an instance of the controller with its required services.
      *
-     * @param orderService          a service managing Order objects
-     * @param authenticationService a service managing authentication
+     * @param orderService           a service managing Order objects
+     * @param authenticationService  a service managing authentication
      * @param orderCompletionService a service creating the handlers for an order completion
      */
     @Autowired
@@ -107,8 +110,8 @@ public class OrderController implements OrderApi {
     /**
      * Let an admin modify an order.
      *
-     * @param orderId The order to be modified.
-     * @param adminId The id of the admin modifying the order.
+     * @param orderId  The order to be modified.
+     * @param adminId  The id of the admin modifying the order.
      * @param newOrder The new order the old order will be modified to.
      * @return The modified order
      */
@@ -131,7 +134,7 @@ public class OrderController implements OrderApi {
      * preparation and delivery.
      *
      * @param orderId ID of the order that is completed (required)
-     * @param userId ID of user who made the order (required)
+     * @param userId  ID of user who made the order (required)
      * @return the order status.
      */
     @Override
@@ -161,8 +164,8 @@ public class OrderController implements OrderApi {
     /**
      * Add multiple dishes to order.
      *
-     * @param orderId The id of the order we want to add dishes to.
-     * @param customerId The id of the customer.
+     * @param orderId     The id of the order we want to add dishes to.
+     * @param customerId  The id of the customer.
      * @param dishesToAdd The list of dishes that will be added to the order
      * @return The list of all dishes of the order.
      */
@@ -179,6 +182,43 @@ public class OrderController implements OrderApi {
             }
 
             return ResponseEntity.of(Optional.of(allDishesFromOrder));
+        }
+    }
+
+    /**
+     * Updates an order and saves it to the DB.
+     *
+     * @param orderId  ID of order that needs to be updated (required)
+     * @param userId   ID of user that wants to update (required)
+     * @param dishes   The list of dishes that needs to be updated (required)
+     * @param location The location that needs to be updated (required)
+     * @param status   The status of the order that needs to be updated (required)
+     * @param time     The time of the order that needs to be updated (required)
+     * @return an empty response entity with an appropriate status code.
+     */
+    @Override
+    public ResponseEntity<Void> modifyOrder(Long orderId, Long userId, List<@Valid Dish> dishes, Location location,
+                                            String status, OffsetDateTime time) {
+        if (!this.orderService.existsAtId(orderId)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        Order order = this.orderService.getOrderById(orderId);
+        if (!(this.authenticationService.isAdmin(userId) || order.getCustomerId().equals(userId))) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        Order.StatusEnum orderStatus;
+        try {
+            orderStatus = Order.StatusEnum.fromValue(status);
+        } catch (IllegalArgumentException e) {
+            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+        }
+        try {
+            boolean updated = this.orderService.updateOrder(orderId, dishes, location, orderStatus, time);
+            return updated ? new ResponseEntity<>(HttpStatus.OK)
+                    : new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
