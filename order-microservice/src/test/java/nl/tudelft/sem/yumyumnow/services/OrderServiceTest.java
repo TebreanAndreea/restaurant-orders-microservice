@@ -23,7 +23,7 @@ public class OrderServiceTest {
     private TestOrderRepository orderRepository;
     private OrderService orderService;
 
-    private UserService userService;
+    private CustomerService userService;
 
     /**
      * setup before each test.
@@ -32,7 +32,7 @@ public class OrderServiceTest {
     @BeforeEach
     public void setup() {
         this.orderRepository = new TestOrderRepository();
-        this.userService = mock(UserService.class);
+        this.userService = mock(CustomerService.class);
         this.orderService = new OrderService(this.orderRepository, this.userService);
     }
 

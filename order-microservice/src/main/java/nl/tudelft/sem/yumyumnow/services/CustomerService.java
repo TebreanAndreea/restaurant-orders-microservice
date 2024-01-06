@@ -5,15 +5,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
-public class UserService {
+public class CustomerService {
     private RestTemplate restTemplate;
     private String url = "http://localhost:8081";
 
-    public UserService() {
+    public CustomerService() {
         this.restTemplate = new RestTemplate();
     }
 
-    public UserService(RestTemplate restTemplate) {
+    public CustomerService(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
     }
 

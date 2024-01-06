@@ -14,14 +14,14 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
-class UserServiceTest {
+class CustomerServiceTest {
     private RestTemplate restTemplate;
-    private UserService userService;
+    private CustomerService customerService;
 
     @BeforeEach
     void setUp() {
         this.restTemplate = mock(RestTemplate.class);
-        userService = new UserService(restTemplate);
+        customerService = new CustomerService(restTemplate);
     }
 
     @Test
@@ -32,7 +32,7 @@ class UserServiceTest {
         when(restTemplate.getForEntity("http://localhost:8081/customer/location/123", Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
-        Location result = userService.getDefaultHomeAddress((long) 123);
+        Location result = customerService.getDefaultHomeAddress((long) 123);
 
         assertEquals(location, result);
         verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/123", Location.class);
@@ -44,7 +44,7 @@ class UserServiceTest {
         when(restTemplate.getForEntity("http://localhost:8081/customer/location/124", Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
-        Location result = userService.getDefaultHomeAddress((long) 124);
+        Location result = customerService.getDefaultHomeAddress((long) 124);
 
         assertEquals(location, result);
         verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/124", Location.class);
@@ -58,7 +58,7 @@ class UserServiceTest {
         when(restTemplate.postForEntity("http://localhost:8081/customer/location/123", location, Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
-        Location result = userService.setDefaultHomeAddress((long) 123, location);
+        Location result = customerService.setDefaultHomeAddress((long) 123, location);
 
         assertEquals(location, result);
         verify(restTemplate, times(1)).postForEntity("http://localhost:8081/customer/location/123", location, Location.class);
@@ -72,7 +72,7 @@ class UserServiceTest {
         when(restTemplate.postForEntity("http://localhost:8081/customer/location/123", location, Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
-        Location result = userService.setDefaultHomeAddress((long) 123, null);
+        Location result = customerService.setDefaultHomeAddress((long) 123, null);
 
         assertNull(result);
         verify(restTemplate, times(0)).postForEntity("http://localhost:8081/customer/location/123", location, Location.class);
