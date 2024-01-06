@@ -40,7 +40,7 @@ public class CustomerService {
      * @return location
      */
     public Location setDefaultHomeAddress(Long customerId, Location location) {
-        if(location == null || customerId < 0) {
+        if (location == null || customerId < 0) {
             return null;
         }
 

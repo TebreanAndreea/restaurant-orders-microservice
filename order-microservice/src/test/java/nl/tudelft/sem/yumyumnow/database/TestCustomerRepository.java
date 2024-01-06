@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-public class TestCustomerRepository implements CustomerRepository{
+public class TestCustomerRepository implements CustomerRepository {
 
     private final List<Customer> customers;
 
@@ -44,30 +44,14 @@ public class TestCustomerRepository implements CustomerRepository{
     }
 
     @Override
-    public List<Customer> findAll() {
-        call("findAll");
-        return this.customers;
-    }
-
-    @Override
-    public List<Customer> findAll(Sort sort) {
-        return null;
-    }
-
-    @Override
-    public Page<Customer> findAll(Pageable pageable) {
-        return null;
-    }
-
-    @Override
-    public List<Customer> findAllById(Iterable<Long> longs) {
-        return null;
-    }
-
-    @Override
     public long count() {
         call("count");
         return this.customers.size();
+    }
+
+    @Override
+    public <S extends Customer> long count(Example<S> example) {
+        return 0;
     }
 
     @Override
@@ -83,31 +67,15 @@ public class TestCustomerRepository implements CustomerRepository{
     }
 
     @Override
-    public void deleteAll(Iterable<? extends Customer> entities) {
-
-    }
-
-    @Override
-    public void deleteAll() {
-        call("deleteAll");
-        this.customers.clear();
-    }
-
-    @Override
     public <S extends Customer> S save(S entity) {
         call("save");
         long id = this.customers.size();
-        if(id > 0){
+        if (id > 0) {
             id = Math.max(id, this.customers.get((int) id - 1).getId());
         }
         entity.setId(id);
         this.customers.add(entity);
         return entity;
-    }
-
-    @Override
-    public <S extends Customer> List<S> saveAll(Iterable<S> entities) {
-        return null;
     }
 
     @Override
@@ -125,6 +93,58 @@ public class TestCustomerRepository implements CustomerRepository{
     @Override
     public void flush() {
 
+    }
+
+    @Override
+    public List<Customer> findAll() {
+        call("findAll");
+        return this.customers;
+    }
+
+    @Override
+    public List<Customer> findAll(Sort sort) {
+        return null;
+    }
+
+    @Override
+    public Page<Customer> findAll(Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public <S extends Customer> List<S> findAll(Example<S> example) {
+        return null;
+    }
+
+    @Override
+    public <S extends Customer> List<S> findAll(Example<S> example, Sort sort) {
+        return null;
+    }
+
+    @Override
+    public <S extends Customer> Page<S> findAll(Example<S> example, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public List<Customer> findAllById(Iterable<Long> longs) {
+        return null;
+    }
+
+    @Override
+    public void deleteAll(Iterable<? extends Customer> entities) {
+
+    }
+
+    @Override
+    public void deleteAll() {
+        call("deleteAll");
+        this.customers.clear();
+    }
+
+    @Override
+    public <S extends Customer> List<S> saveAll(Iterable<S> entities) {
+        return null;
     }
 
     @Override
@@ -150,26 +170,6 @@ public class TestCustomerRepository implements CustomerRepository{
     @Override
     public <S extends Customer> Optional<S> findOne(Example<S> example) {
         return Optional.empty();
-    }
-
-    @Override
-    public <S extends Customer> List<S> findAll(Example<S> example) {
-        return null;
-    }
-
-    @Override
-    public <S extends Customer> List<S> findAll(Example<S> example, Sort sort) {
-        return null;
-    }
-
-    @Override
-    public <S extends Customer> Page<S> findAll(Example<S> example, Pageable pageable) {
-        return null;
-    }
-
-    @Override
-    public <S extends Customer> long count(Example<S> example) {
-        return 0;
     }
 
     @Override
