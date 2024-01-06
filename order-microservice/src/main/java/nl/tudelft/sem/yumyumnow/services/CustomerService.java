@@ -40,7 +40,8 @@ public class CustomerService {
      * @return location
      */
     public Location setDefaultHomeAddress(Long customerId, Location location) {
-        if (location == null || customerId < 0) {
+        if (location == null || customerId < 0 || location.getLatitude() < -90 || location.getLatitude() > 90
+            || location.getLongitude() < -180 || location.getLongitude() > 180) {
             return null;
         }
 
