@@ -75,4 +75,19 @@ public class VendorController implements VendorApi {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @Override
+    public ResponseEntity<List<Vendor>> getAllVendors(String filter) {
+        try {
+            if (filter == null || filter.isEmpty()) {
+                List<Vendor> vendors = this.vendorService.getAllVendors();
+                return new ResponseEntity<>(vendors, HttpStatus.OK);
+            } else {
+                List<Vendor> vendors = this.vendorService.findByVendorNameContaining(filter);
+                return new ResponseEntity<>(vendors, HttpStatus.OK);
+            }
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

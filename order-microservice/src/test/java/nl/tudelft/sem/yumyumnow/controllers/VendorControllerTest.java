@@ -221,4 +221,71 @@ public class VendorControllerTest {
 
     }
 
+    @Test
+    public void testGetAllVendors() {
+        Vendor v1 = new Vendor();
+        v1.setName("Vendor 1");
+        v1.setId(1L);
+        Vendor v2 = new Vendor();
+        v2.setName("Vendor 2");
+        v2.setId(2L);
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+        vendors.add(v2);
+
+        Mockito.when(this.vendorService.getAllVendors()).thenReturn(vendors);
+        List<Vendor> vendorsReceived = this.vendorController.getAllVendors(null).getBody();
+
+        assertNotNull(vendorsReceived);
+        assertEquals(1L, vendorsReceived.get(0).getId());
+        assertEquals(2L, vendorsReceived.get(1).getId());
+        assertEquals(2, vendorsReceived.size());
+    }
+
+    @Test
+    public void testGetAllVendorsEmpty() {
+        List<Vendor> vendors = new ArrayList<>();
+
+        Mockito.when(this.vendorService.getAllVendors()).thenReturn(vendors);
+        List<Vendor> vendorsReceived = this.vendorController.getAllVendors(null).getBody();
+
+        assertNotNull(vendorsReceived);
+        assertEquals(0, vendorsReceived.size());
+    }
+
+    @Test
+    public void testGetAllVendorsFilter() {
+        Vendor v1 = new Vendor();
+        v1.setName("Bistro de l'Arte");
+        v1.setId(1L);
+        Vendor v2 = new Vendor();
+        v2.setName("Bistro Aha");
+        v2.setId(2L);
+        Vendor v3 = new Vendor();
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+        vendors.add(v2);
+
+        Mockito.when(this.vendorService.findByVendorNameContaining("Bistro")).thenReturn(vendors);
+        List<Vendor> vendorsReceived = this.vendorController.getAllVendors("Bistro").getBody();
+
+        assertNotNull(vendorsReceived);
+        assertEquals(1L, vendorsReceived.get(0).getId());
+        assertEquals("Bistro de l'Arte", vendorsReceived.get(0).getName());
+        assertEquals(2L, vendorsReceived.get(1).getId());
+        assertEquals("Bistro Aha", vendorsReceived.get(1).getName());
+        assertEquals(2, vendorsReceived.size());
+    }
+
+    @Test
+    public void testGetAllVendorsFilterEmpty() {
+        List<Vendor> vendors = new ArrayList<>();
+
+        Mockito.when(this.vendorService.findByVendorNameContaining("Bistro")).thenReturn(vendors);
+        List<Vendor> vendorsReceived = this.vendorController.getAllVendors("Bistro").getBody();
+
+        assertNotNull(vendorsReceived);
+        assertEquals(0, vendorsReceived.size());
+    }
+
 }

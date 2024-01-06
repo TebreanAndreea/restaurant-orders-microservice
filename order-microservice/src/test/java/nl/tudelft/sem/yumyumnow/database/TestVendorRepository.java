@@ -11,6 +11,7 @@ import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.repository.query.Param;
 
 public class TestVendorRepository implements VendorRepository {
     private final List<Vendor> vendors;
@@ -38,7 +39,8 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public long count() {
-        return 0;
+        call("count");
+        return this.vendors.size();
     }
 
     /**
@@ -60,7 +62,8 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public void deleteById(Long id) {
-
+        call("deleteById");
+        this.vendors.removeIf(x -> x.getId().equals(id));
     }
 
     /**
@@ -71,7 +74,8 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public void delete(Vendor entity) {
-
+        call("delete");
+        this.vendors.remove(entity);
     }
 
     /**
@@ -82,7 +86,6 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public void deleteAll(Iterable<? extends Vendor> entities) {
-
     }
 
     /**
@@ -90,7 +93,8 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public void deleteAll() {
-
+        call("deleteAll");
+        this.vendors.clear();
     }
 
     /**
@@ -141,7 +145,8 @@ public class TestVendorRepository implements VendorRepository {
      */
     @Override
     public boolean existsById(Long id) {
-        return false;
+        call("existsById");
+        return this.vendors.stream().anyMatch(x -> x.getId().equals(id));
     }
 
     /**
@@ -216,7 +221,8 @@ public class TestVendorRepository implements VendorRepository {
 
     @Override
     public List<Vendor> findAll() {
-        return null;
+        call("findAll");
+        return this.vendors;
     }
 
     @Override
@@ -270,5 +276,18 @@ public class TestVendorRepository implements VendorRepository {
     @Override
     public <S extends Vendor> boolean exists(Example<S> example) {
         return false;
+    }
+
+
+    @Override
+    public List<Vendor> findByVendorNameContaining(@Param("filter") String filter) {
+        call("findByVendorNameContaining");
+        List<Vendor> found = new ArrayList<>();
+        for (Vendor v : vendors) {
+            if (v.getName().contains(filter)) {
+                found.add(v);
+            }
+        }
+        return found;
     }
 }
