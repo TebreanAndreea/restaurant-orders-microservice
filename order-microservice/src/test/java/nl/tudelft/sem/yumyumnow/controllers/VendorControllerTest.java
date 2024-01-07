@@ -2,6 +2,7 @@ package nl.tudelft.sem.yumyumnow.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +10,7 @@ import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.DishService;
@@ -234,12 +236,13 @@ public class VendorControllerTest {
         vendors.add(v2);
 
         Mockito.when(this.vendorService.getAllVendors()).thenReturn(vendors);
-        List<Vendor> vendorsReceived = this.vendorController.getAllVendors(null).getBody();
+        ResponseEntity<List<Vendor>> response = this.vendorController.getAllVendors(null);
 
-        assertNotNull(vendorsReceived);
-        assertEquals(1L, vendorsReceived.get(0).getId());
-        assertEquals(2L, vendorsReceived.get(1).getId());
-        assertEquals(2, vendorsReceived.size());
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(1L, response.getBody().get(0).getId());
+        assertEquals(2L, response.getBody().get(1).getId());
+        assertEquals(2, response.getBody().size());
     }
 
     @Test
@@ -247,10 +250,11 @@ public class VendorControllerTest {
         List<Vendor> vendors = new ArrayList<>();
 
         Mockito.when(this.vendorService.getAllVendors()).thenReturn(vendors);
-        List<Vendor> vendorsReceived = this.vendorController.getAllVendors(null).getBody();
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendors(null);
 
         assertNotNull(vendorsReceived);
-        assertEquals(0, vendorsReceived.size());
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(0, vendorsReceived.getBody().size());
     }
 
     @Test
@@ -267,14 +271,15 @@ public class VendorControllerTest {
         vendors.add(v2);
 
         Mockito.when(this.vendorService.findByVendorNameContaining("Bistro")).thenReturn(vendors);
-        List<Vendor> vendorsReceived = this.vendorController.getAllVendors("Bistro").getBody();
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendors("Bistro");
 
         assertNotNull(vendorsReceived);
-        assertEquals(1L, vendorsReceived.get(0).getId());
-        assertEquals("Bistro de l'Arte", vendorsReceived.get(0).getName());
-        assertEquals(2L, vendorsReceived.get(1).getId());
-        assertEquals("Bistro Aha", vendorsReceived.get(1).getName());
-        assertEquals(2, vendorsReceived.size());
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+        assertEquals("Bistro de l'Arte", vendorsReceived.getBody().get(0).getName());
+        assertEquals(2L, vendorsReceived.getBody().get(1).getId());
+        assertEquals("Bistro Aha", vendorsReceived.getBody().get(1).getName());
+        assertEquals(2, vendorsReceived.getBody().size());
     }
 
     @Test
@@ -282,10 +287,107 @@ public class VendorControllerTest {
         List<Vendor> vendors = new ArrayList<>();
 
         Mockito.when(this.vendorService.findByVendorNameContaining("Bistro")).thenReturn(vendors);
-        List<Vendor> vendorsReceived = this.vendorController.getAllVendors("Bistro").getBody();
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendors("Bistro");
 
         assertNotNull(vendorsReceived);
-        assertEquals(0, vendorsReceived.size());
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(0, vendorsReceived.getBody().size());
+    }
+
+    @Test
+    public void testGetVendorsAddressEmptyFilter() {
+        Location customer = new Location();
+        customer.setLatitude(23.0);
+        customer.setLongitude(45.0);
+
+        Vendor v1 = new Vendor();
+        v1.setName("Bistro de l'Arte");
+        v1.setId(1L);
+        v1.setLocation(customer);
+
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "", 1000)).thenReturn(vendors);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "", 1000);
+
+        assertNotNull(vendorsReceived);
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+    }
+
+    @Test
+    public void testGetVendorsAddress() {
+        Location customer = new Location();
+        customer.setLatitude(23.0);
+        customer.setLongitude(45.0);
+
+        Vendor v1 = new Vendor();
+        v1.setName("Bistro de l'Arte");
+        v1.setId(1L);
+        v1.setLocation(customer);
+
+        Vendor v2 = new Vendor();
+        v2.setName("Bistro Aha");
+        v2.setId(2L);
+        v2.setLocation(new Location());
+        v2.getLocation().setLatitude(23.0);
+        v2.getLocation().setLongitude(45.01);
+
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+        vendors.add(v2);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 2000)).thenReturn(vendors);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 2000);
+
+        assertNotNull(vendorsReceived);
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+    }
+
+    @Test
+    public void testGetVendorsAddressNullRadius() {
+        Location customer = new Location();
+        customer.setLatitude(23.0);
+        customer.setLongitude(45.0);
+
+        Vendor v1 = new Vendor();
+        v1.setName("Bistro de l'Arte");
+        v1.setId(1L);
+        v1.setLocation(customer);
+
+        Vendor v2 = new Vendor();
+        v2.setName("Bistro Aha");
+        v2.setId(2L);
+        v2.setLocation(new Location());
+        v2.getLocation().setLatitude(23.0);
+        v2.getLocation().setLongitude(45.01);
+
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+        vendors.add(v2);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 1000)).thenReturn(vendors);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", null);
+
+        assertNotNull(vendorsReceived);
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+    }
+
+    @Test
+    public void testGetVendorsAddressInvalidAddress() {
+        Location customer = new Location();
+        customer.setLatitude(291.0);
+        customer.setLongitude(45.0);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 1000)).thenReturn(null);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 1000);
+
+        assertNotNull(vendorsReceived);
+        assertNull(vendorsReceived.getBody());
+        assertEquals(HttpStatus.NOT_FOUND, vendorsReceived.getStatusCode());
     }
 
 }
