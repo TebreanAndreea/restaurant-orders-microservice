@@ -3,6 +3,8 @@ package nl.tudelft.sem.yumyumnow.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
@@ -10,6 +12,7 @@ import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.DishService;
+import nl.tudelft.sem.yumyumnow.services.VendorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -19,6 +22,7 @@ import org.springframework.http.ResponseEntity;
 public class VendorControllerTest {
 
     private DishService dishService;
+    private VendorService vendorService;
     private AuthenticationService authenticationService;
     private VendorRepository vendorRepository;
     private VendorController vendorController;
@@ -29,9 +33,10 @@ public class VendorControllerTest {
     @BeforeEach
     public void setup() {
         this.dishService = Mockito.mock(DishService.class);
+        this.vendorService = Mockito.mock(VendorService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
         this.vendorRepository = Mockito.mock(VendorRepository.class);
-        this.vendorController = new VendorController(dishService, authenticationService, vendorRepository);
+        this.vendorController = new VendorController(dishService, vendorService, authenticationService, vendorRepository);
     }
 
     @Test
@@ -157,4 +162,63 @@ public class VendorControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
+
+    @Test
+    public void unauthorizedAccessTestToGetDishes() {
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(false);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetVendorDishNoVendor() {
+
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+
+
+        Mockito.when(this.vendorRepository.findById(10L)).thenThrow(RuntimeException.class);
+        Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(null);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetVendorDishValid() {
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+        Dish dish1 = new Dish();
+        Dish dish2 = new Dish();
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(dish1);
+        dishes.add(dish2);
+
+        Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(dishes);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dishes, response.getBody());
+    }
+
+    @Test
+    public void testGetVendorDishValidEmptyList() {
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+        List<Dish> dishes = new ArrayList<>();
+        Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(dishes);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(0, response.getBody().size());
+        assertEquals(dishes, response.getBody());
+
+    }
+
 }
