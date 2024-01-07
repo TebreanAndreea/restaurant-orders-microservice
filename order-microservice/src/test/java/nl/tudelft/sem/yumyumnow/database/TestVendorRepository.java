@@ -301,6 +301,9 @@ public class TestVendorRepository implements VendorRepository {
      * @return True if the address is in the radius, false otherwise.
      */
     public boolean withinRadius(Location address, Integer radius, Location vendorAddress) {
+        if (address == null || vendorAddress == null || radius == null || radius < 0) {
+            return false;
+        }
         return Math.acos(Math.sin(address.getLatitude()) * Math.sin(vendorAddress.getLatitude())
                 + Math.cos(address.getLatitude()) * Math.cos(vendorAddress.getLatitude())
                 * Math.cos(address.getLongitude() - vendorAddress.getLongitude())) * 6371 <= (double) radius / 1000.0;
