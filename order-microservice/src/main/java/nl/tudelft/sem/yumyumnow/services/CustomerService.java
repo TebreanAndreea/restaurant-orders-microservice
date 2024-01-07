@@ -1,20 +1,21 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import nl.tudelft.sem.yumyumnow.model.Location;
+import nl.tudelft.sem.yumyumnow.services.requests.PutRequest;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 @Service
 public class CustomerService {
-    private RestTemplate restTemplate;
     private String url = "http://localhost:8081";
 
-    public CustomerService() {
-        this.restTemplate = new RestTemplate();
-    }
+    private final IntegrationService integrationService;
 
-    public CustomerService(RestTemplate restTemplate) {
-        this.restTemplate = restTemplate;
+    @Autowired
+    public CustomerService(IntegrationService integrationService) {
+        this.integrationService = integrationService;
     }
 
     /**
@@ -24,7 +25,8 @@ public class CustomerService {
      * @return location
      */
     public Location getDefaultHomeAddress(Long customerId) {
-        Location location = restTemplate.getForEntity(url + "/customer/location/" + customerId, Location.class).getBody();
+        Location location = integrationService.getRestTemplate().getForEntity(url + "/customer/location/"
+            + customerId, Location.class).getBody();
         if (location == null) {
             return new Location();
         }
@@ -45,6 +47,12 @@ public class CustomerService {
             return null;
         }
 
-        return restTemplate.postForEntity(url + "/customer/homeAddress/" + customerId, location, Location.class).getBody();
+        String url = integrationService.getUserMicroserviceAddress() + "/customer/homeAddress/" + customerId;
+        ResponseEntity<Location> response = new PutRequest(integrationService.getRestTemplate(),
+            url, location).send(Location.class);
+        if (response.getStatusCode().isError()) {
+            return null;
+        }
+        return response.getBody();
     }
 }

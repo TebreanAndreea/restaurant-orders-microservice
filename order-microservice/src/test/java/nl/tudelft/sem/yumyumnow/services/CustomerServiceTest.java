@@ -10,6 +10,8 @@ import static org.mockito.Mockito.when;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
@@ -21,7 +23,9 @@ class CustomerServiceTest {
     @BeforeEach
     void setUp() {
         this.restTemplate = mock(RestTemplate.class);
-        customerService = new CustomerService(restTemplate);
+        IntegrationService integrationService = new IntegrationService("http://localhost:8080",
+            "http://localhost:8081", restTemplate);
+        customerService = new CustomerService(integrationService);
     }
 
     @Test
@@ -55,13 +59,13 @@ class CustomerServiceTest {
         Location location = new Location();
         location.setLatitude(83.56);
         location.setLongitude(145.78);
-        when(restTemplate.postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class))
+        when(restTemplate.exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
         Location result = customerService.setDefaultHomeAddress((long) 123, location);
 
         assertEquals(location, result);
-        verify(restTemplate, times(1)).postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class);
+        verify(restTemplate, times(1)).exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class);
     }
 
     @Test
@@ -69,13 +73,13 @@ class CustomerServiceTest {
         Location location = new Location();
         location.setLatitude(83.56);
         location.setLongitude(145.78);
-        when(restTemplate.postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class))
+        when(restTemplate.exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
         Location result = customerService.setDefaultHomeAddress((long) 123, null);
 
         assertNull(result);
-        verify(restTemplate, times(0)).postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class);
+        verify(restTemplate, times(0)).exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class);
     }
 
     @Test
@@ -83,12 +87,12 @@ class CustomerServiceTest {
         Location location = new Location();
         location.setLatitude(83.56);
         location.setLongitude(345.78);
-        when(restTemplate.postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class))
+        when(restTemplate.exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
 
         Location result = customerService.setDefaultHomeAddress((long) 123, null);
 
         assertNull(result);
-        verify(restTemplate, times(0)).postForEntity("http://localhost:8081/customer/homeAddress/123", location, Location.class);
+        verify(restTemplate, times(0)).exchange("http://localhost:8081/customer/homeAddress/123", HttpMethod.PUT, new HttpEntity<>(location), Location.class);
     }
 }

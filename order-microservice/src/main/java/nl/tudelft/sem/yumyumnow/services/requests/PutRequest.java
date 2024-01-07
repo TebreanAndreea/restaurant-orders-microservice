@@ -1,5 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services.requests;
 
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
@@ -29,8 +31,9 @@ public class PutRequest extends Request {
     @Override
     public <T> ResponseEntity<T> send(Class<T> returnType) {
         if (this.parameters.isEmpty()) {
-            return this.restTemplate.postForEntity(this.url, this.body, returnType);
+            return this.restTemplate.exchange(this.url, HttpMethod.PUT, new HttpEntity<>(this.body), returnType);
         }
-        return this.restTemplate.postForEntity(this.url, this.body, returnType, this.parameters);
+        return this.restTemplate.exchange(this.url, HttpMethod.PUT, new HttpEntity<>(this.body),
+            returnType, this.parameters);
     }
 }
