@@ -42,4 +42,36 @@ public class VendorService {
         }
         return null;
     }
+
+    /**
+     * Create a new vendor.
+     *
+     * @param vendorName The name of the vendor we want to create.
+     * @return The vendor with the corresponding id.
+     */
+    public Vendor createNewVendor(String vendorName) {
+        Vendor vendor = new Vendor();
+        vendor.setName(vendorName);
+        return this.vendorRepository.save(vendor);
+    }
+
+    /**
+     * Return a list of all vendors.
+     *
+     * @return List of all vendors.
+     */
+    public List<Vendor> getAllVendors() {
+        return this.vendorRepository.findAll();
+    }
+
+
+    /**
+     * Return a list of vendors filtered by name.
+     *
+     * @param filter The filter to apply to the vendor's name.
+     * @return List of vendors filtered by name.
+     */
+    public List<Vendor> findByVendorNameContaining(String filter) {
+        return this.vendorRepository.findByVendorNameContaining(filter);
+    }
 }

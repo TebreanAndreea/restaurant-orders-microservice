@@ -68,4 +68,53 @@ public class VendorServiceTest {
         assertEquals(dishes.get(1), dishesRetrive.get(1));
     }
 
+    @Test
+    public void testCreateNewVendor() {
+        Vendor vendor = this.vendorService.createNewVendor("Vendor1");
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("save", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals("Vendor1", vendor.getName());
+    }
+
+    @Test
+    public void testGetAllVendors() {
+        Vendor vendor1 = this.vendorService.createNewVendor("Vendor1");
+        Vendor vendor2 = this.vendorService.createNewVendor("Vendor2");
+
+        List<Vendor> vendors = this.vendorService.getAllVendors();
+        assertEquals(3, this.vendorRepository.getMethodCalls().size());
+
+        assertEquals(vendor1, vendors.get(0));
+        assertEquals(vendor2, vendors.get(1));
+        assertEquals(2, vendors.size());
+    }
+
+    @Test
+    public void testGetAllVendorsEmpty() {
+        List<Vendor> vendors = this.vendorService.getAllVendors();
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findAll", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(0, vendors.size());
+    }
+
+    @Test
+    public void testFindByVendorNameContaining() {
+        Vendor vendor1 = this.vendorService.createNewVendor("Bistro");
+        Vendor vendor2 = this.vendorService.createNewVendor("Restaurant");
+
+        List<Vendor> vendors = this.vendorService.findByVendorNameContaining("Bistro");
+        assertEquals(3, this.vendorRepository.getMethodCalls().size());
+
+        assertEquals(vendor1, vendors.get(0));
+        assertEquals(1, vendors.size());
+    }
+
+    @Test
+    public void testFindByVendorNameContainingEmpty() {
+        List<Vendor> vendors = this.vendorService.findByVendorNameContaining("Bistro");
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findByVendorNameContaining", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(0, vendors.size());
+    }
+
 }
