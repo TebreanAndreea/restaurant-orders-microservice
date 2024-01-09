@@ -20,19 +20,19 @@ public class OrderService {
 
 
     private final OrderRepository orderRepository;
-    private final UserService userService;
+    private final CustomerService userService;
 
 
     /**
      * Creates a new Order Service.
      *
      * @param repository  the DB instance where the Orders are stored
-     * @param userService an instance of the user service
+     * @param customerService an instance of the user service
      */
     @Autowired
-    public OrderService(OrderRepository repository, UserService userService) {
+    public OrderService(OrderRepository repository, CustomerService customerService) {
         this.orderRepository = repository;
-        this.userService = userService;
+        this.userService = customerService;
     }
 
 
