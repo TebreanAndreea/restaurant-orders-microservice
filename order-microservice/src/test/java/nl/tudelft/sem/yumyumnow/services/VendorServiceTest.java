@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.database.TestVendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -115,6 +116,68 @@ public class VendorServiceTest {
         assertEquals(1, this.vendorRepository.getMethodCalls().size());
         assertEquals("findByVendorNameContaining", this.vendorRepository.getMethodCalls().get(0));
         assertEquals(0, vendors.size());
+    }
+
+    @Test
+    public void testFindByLocationWithinRadius() {
+        Vendor vendor1 = this.vendorService.createNewVendor("Bistro");
+        Location location1 = new Location();
+        location1.setLatitude(23.01);
+        location1.setLongitude(23.0);
+        vendor1.setLocation(location1);
+
+        Vendor vendor2 = this.vendorService.createNewVendor("Restaurant");
+        Location location2 = new Location();
+        location2.setLatitude(43.0);
+        location2.setLongitude(23.0);
+        vendor2.setLocation(location2);
+
+        List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location1, "Bistro", 4000);
+        assertEquals(3, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(2));
+        assertEquals(vendor1, vendors.get(0));
+        assertEquals(1, vendors.size());
+    }
+
+    @Test
+    public void testFindByLocationEmpty() {
+        Location location1 = new Location();
+        location1.setLatitude(23.01);
+        location1.setLongitude(23.0);
+
+        List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location1, "Bistro", 4000);
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(0, vendors.size());
+    }
+
+    @Test
+    public void testFindByLocationNull() {
+        List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(null, "Bistro", 4000);
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(0, vendors.size());
+    }
+
+    @Test
+    public void testFindByLocationNoRadius() {
+        Vendor vendor1 = this.vendorService.createNewVendor("Bistro");
+        Location location1 = new Location();
+        location1.setLatitude(23.01);
+        location1.setLongitude(23.0);
+        vendor1.setLocation(location1);
+
+        Vendor vendor2 = this.vendorService.createNewVendor("Restaurant");
+        Location location2 = new Location();
+        location2.setLatitude(43.0);
+        location2.setLongitude(23.0);
+        vendor2.setLocation(location2);
+
+        List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location1, "Bistro", null);
+        assertEquals(3, this.vendorRepository.getMethodCalls().size());
+        assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(2));
+        assertEquals(vendor1, vendors.get(0));
+        assertEquals(1, vendors.size());
     }
 
 }

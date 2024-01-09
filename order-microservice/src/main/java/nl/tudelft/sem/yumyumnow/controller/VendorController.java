@@ -5,6 +5,7 @@ import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.VendorApi;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.DishService;
@@ -86,6 +87,29 @@ public class VendorController implements VendorApi {
                 List<Vendor> vendors = this.vendorService.findByVendorNameContaining(filter);
                 return new ResponseEntity<>(vendors, HttpStatus.OK);
             }
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    public ResponseEntity<List<Vendor>> getAllVendorsAddress(Location location, String filter, Integer radius) {
+        try {
+            if (location == null || location.getLatitude() < -90 || location.getLatitude() > 90
+                    || location.getLongitude() < -180 || location.getLongitude() > 180) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            if (filter == null) {
+                filter = "";
+            }
+
+            if (radius == null || radius < 0) {
+                radius = 1000;
+            }
+
+            List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location, filter, radius);
+            return new ResponseEntity<>(vendors, HttpStatus.OK);
+
         } catch (RuntimeException e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }

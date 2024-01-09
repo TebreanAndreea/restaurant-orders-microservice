@@ -5,6 +5,7 @@ import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -73,5 +74,20 @@ public class VendorService {
      */
     public List<Vendor> findByVendorNameContaining(String filter) {
         return this.vendorRepository.findByVendorNameContaining(filter);
+    }
+
+    /**
+     * Return a list of vendors filtered by address.
+     *
+     * @param location The address to apply to the vendor's address.
+     * @param filter The filter to apply to the vendor's name.
+     * @param radius The radius to apply to the vendor's address.
+     * @return List of vendors filtered by address.
+     */
+    public List<Vendor> findByLocationWithinRadius(Location location, String filter, Integer radius) {
+        if (radius == null) {
+            radius = 1000;
+        }
+        return this.vendorRepository.findByLocationWithinRadius(location, filter, radius);
     }
 }

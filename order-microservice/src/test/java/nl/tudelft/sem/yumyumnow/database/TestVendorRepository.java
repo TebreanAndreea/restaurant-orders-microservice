@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
@@ -285,6 +286,19 @@ public class TestVendorRepository implements VendorRepository {
         List<Vendor> found = new ArrayList<>();
         for (Vendor v : vendors) {
             if (v.getName().contains(filter)) {
+                found.add(v);
+            }
+        }
+        return found;
+    }
+
+    @Override
+    public List<Vendor> findByLocationWithinRadius(@Param("location") Location location, @Param("filter") String filter,
+        @Param("radius") Integer radius) {
+        call("findByLocationWithinRadius");
+        List<Vendor> found = new ArrayList<>();
+        for (Vendor v : vendors) {
+            if (v.getName().contains(filter) && withinRadius(location, radius, v.getLocation())) {
                 found.add(v);
             }
         }
