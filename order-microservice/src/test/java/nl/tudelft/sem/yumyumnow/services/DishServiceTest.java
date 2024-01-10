@@ -42,4 +42,27 @@ public class DishServiceTest {
         Dish retrievedDish = this.dishService.getDishById(savedDish.getId());
         assertEquals(dish.getName(), retrievedDish.getName());
     }
+
+    @Test
+    public void testGetDishById() {
+        Dish dish = new Dish();
+        dish.setName("Test Dish");
+        Dish savedDish = this.dishService.createNewDish(dish);
+
+        assertEquals(1, this.dishRepository.getMethodCalls().size());
+        assertEquals("save", this.dishRepository.getMethodCalls().get(0));
+
+        Dish retrievedDish = this.dishService.getDishById(savedDish.getId());
+        assertEquals(dish.getName(), retrievedDish.getName());
+    }
+
+    @Test
+    public void testGetDishByIdError() {
+        Dish dish = new Dish();
+        dish.setName("Test Dish");
+        Dish savedDish = this.dishService.createNewDish(dish);
+
+        assertThrows(NoSuchElementException.class, () -> this.dishService.getDishById(112L),
+                "No dish exists with id 112");
+    }
 }
