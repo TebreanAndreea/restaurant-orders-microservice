@@ -135,6 +135,14 @@ public class OrderControllerTest {
         assertEquals(orders, new ArrayList<Order>());
     }
 
+    @Test
+    public void testGetAllOrdersCustomerInternalError() {
+        Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenThrow(new NoSuchElementException("No order exists with id 25"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderController.getListOfOrdersForCustomers(2L).getStatusCode());
+    }
+
     /**
      * Tests the getListOfOrdersForVendor method with invalid Vendor ID.
      */
@@ -184,6 +192,14 @@ public class OrderControllerTest {
         List<Order> orders = orderController.getListOfOrdersForVendor(2L).getBody();
         assertNotNull(orders);
         assertEquals(orders, new ArrayList<Order>());
+    }
+
+    @Test
+    public void testGetAllOrdersVendorInternalError() {
+        Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenThrow(new NoSuchElementException("No order exists with id 25"));
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderController.getListOfOrdersForVendor(2L).getStatusCode());
     }
 
 
@@ -293,6 +309,40 @@ public class OrderControllerTest {
 
         ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, new Dish());
         assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void addDishToOrderNullSaved() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
+
+        Order order = new Order();
+        order.setCustomerId(100L);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
+        Mockito.when(this.orderService.addDishToOrder(100L, d1)).thenReturn(null);
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testAddDishToOrderInternalError() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
+
+        Order order = new Order();
+        order.setCustomerId(100L);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
+        Mockito.when(this.orderService.addDishToOrder(100L, d1)).thenThrow(new NoSuchElementException("No order exists with id 25"));
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
 
