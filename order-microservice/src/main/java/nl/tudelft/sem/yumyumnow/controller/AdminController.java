@@ -27,7 +27,7 @@ public class AdminController implements AdminApi {
      */
     @Autowired
     public AdminController(OrderService orderService, AuthenticationService authenticationService,
-        CompletionFactory orderCompletionService) {
+                           CompletionFactory orderCompletionService) {
         this.orderService = orderService;
         this.authenticationService = authenticationService;
         this.orderCompletionService = orderCompletionService;
@@ -52,6 +52,8 @@ public class AdminController implements AdminApi {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
+        }
+    }
 
     /**
      * An admin can view all orders in the system.

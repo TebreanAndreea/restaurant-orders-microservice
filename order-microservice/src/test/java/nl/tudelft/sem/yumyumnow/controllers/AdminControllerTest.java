@@ -43,7 +43,7 @@ public class AdminControllerTest {
     public void setup() {
         this.orderService = Mockito.mock(OrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
-        this.adminController = new AdminController(orderService, authenticationService);
+        this.adminController = new AdminController(orderService, authenticationService, orderCompletionService);
     }
 
     /**
@@ -80,7 +80,6 @@ public class AdminControllerTest {
 
         ResponseEntity<Void> statusCode = adminController.removeOrder(2L, 100L);
         assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
-=======
         this.orderCompletionService = Mockito.mock(CompletionFactory.class);
         this.adminController = new AdminController(orderService, authenticationService, orderCompletionService);
     }
