@@ -125,26 +125,32 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * Add multiple dishes to order.
+     * Add one dishes to order.
      *
      * @param orderId     The id of the order we want to add dishes to.
      * @param customerId  The id of the customer.
-     * @param dishesToAdd The list of dishes that will be added to the order
+     * @param dish The dish we want to add to the order.
      * @return The list of all dishes of the order.
      */
-    public ResponseEntity<List<Dish>> addDishesToOrder(Long orderId, Long customerId, List<Dish> dishesToAdd) {
-        if (!this.authenticationService.isCustomer(customerId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else if (dishesToAdd.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    @Override
+    public ResponseEntity<Void> addDishToOrder(Long orderId, Long customerId, Dish dish) {
+        if (!this.authenticationService.isCustomer(customerId) || !this.orderService.existsAtId(orderId)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (!this.orderService.getOrderById(orderId).getCustomerId().equals(customerId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {
-            List<Dish> allDishesFromOrder = this.orderService.addDishesToOrder(orderId, dishesToAdd);
-
-            if (allDishesFromOrder == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            try {
+                if (dish == null) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                List<Dish> savedDish = this.orderService.addDishToOrder(orderId, dish);
+                if (savedDish == null) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                return new ResponseEntity<>(HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            return ResponseEntity.of(Optional.of(allDishesFromOrder));
         }
     }
 

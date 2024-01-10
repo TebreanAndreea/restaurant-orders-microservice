@@ -69,7 +69,7 @@ public class AdminController implements AdminApi {
         try {
             Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
 
-            if(modifiedOrder == null) {
+            if (modifiedOrder == null) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
 

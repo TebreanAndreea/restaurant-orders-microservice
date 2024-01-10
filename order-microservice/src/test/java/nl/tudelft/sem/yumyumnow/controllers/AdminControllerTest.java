@@ -111,7 +111,7 @@ public class AdminControllerTest {
     @Test
     public void modifyOrderAdminNotFound() {
         Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-            Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
+        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
 
         assertEquals(HttpStatus.NOT_FOUND, adminController.updateOrder(100L, 100L, new Order()).getStatusCode());
     }
