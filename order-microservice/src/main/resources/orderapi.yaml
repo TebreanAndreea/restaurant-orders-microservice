@@ -904,7 +904,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Dish'
+                  $ref: '#/components/schemas/Order'
         '404':
           description: Vendor id not found
         '500':

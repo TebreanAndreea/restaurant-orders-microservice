@@ -85,13 +85,16 @@ public class OrderController implements OrderApi {
      * @param vendorId ID of vendor viewing all the orders (required)
      * @return a Response Entity containing the order created, or an error code
      */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersVendor(Long vendorId) {
+    @Override
+    public ResponseEntity<List<Order>> getListOfOrdersForVendor(Long vendorId) {
         if (!this.authenticationService.isVendor(vendorId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try {
             List<Order> allOrders = this.orderService.getAllOrdersForVendor(vendorId);
             return ResponseEntity.ok(allOrders);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
