@@ -85,19 +85,17 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests the getAllOrdersCustomer method with invalid customer ID.
+     * Tests the getListOfOrdersForCustomers method with invalid customer ID.
      */
     @Test
-    public void getAllOrdersCustomerInvalidId() {
+    public void getListOfOrdersForCustomersInvalidId() {
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
-        Mockito.when(this.authenticationService.isCustomer(101L)).thenReturn(true);
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersCustomer(100L).getStatusCode());
-        assertEquals(HttpStatus.OK, orderController.getAllOrdersCustomer(101L).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, orderController.getListOfOrdersForCustomers(100L).getStatusCode());
     }
 
     /**
-     * Tests if the method getAllOrdersCustomer returns a correct List of Orders.
+     * Tests if the method getListOfOrdersForCustomers returns a correct List of Orders.
      */
     @Test
     public void testGetAllOrdersCustomer() {
@@ -114,7 +112,7 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(orders);
 
-        List<Order> ordersReceived = orderController.getAllOrdersCustomer(2L).getBody();
+        List<Order> ordersReceived = orderController.getListOfOrdersForCustomers(2L).getBody();
         assertNotNull(ordersReceived);
         assertEquals(2L, ordersReceived.get(0).getCustomerId());
         assertEquals(3L, ordersReceived.get(0).getVendorId());
@@ -124,7 +122,7 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests if the method getAllOrdersCustomer returns a correct List of Orders if there
+     * Tests if the method getListOfOrdersForCustomers returns a correct List of Orders if there
      * are no orders.
      */
     @Test
@@ -132,7 +130,7 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(new ArrayList<Order>());
 
-        List<Order> orders = orderController.getAllOrdersCustomer(2L).getBody();
+        List<Order> orders = orderController.getListOfOrdersForCustomers(2L).getBody();
         assertNotNull(orders);
         assertEquals(orders, new ArrayList<Order>());
     }

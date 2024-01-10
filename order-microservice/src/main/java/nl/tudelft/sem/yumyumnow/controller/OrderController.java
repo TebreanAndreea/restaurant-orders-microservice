@@ -61,18 +61,21 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * A customer can view all orders in the system.
+     * Get a list of all orders for a customer.
      *
      * @param customerId ID of customer viewing all the orders (required)
-     * @return a Response Entity containing the order created, or an error code
+     * @return a Response Entity containing the list of orders, or error code
      */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersCustomer(Long customerId) {
+    @Override
+    public ResponseEntity<List<Order>> getListOfOrdersForCustomers(Long customerId) {
         if (!this.authenticationService.isCustomer(customerId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try {
             List<Order> allOrders = this.orderService.getAllOrdersForCustomer(customerId);
-            return ResponseEntity.of(Optional.of(allOrders));
+            return ResponseEntity.ok(allOrders);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -88,7 +91,7 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         } else {
             List<Order> allOrders = this.orderService.getAllOrdersForVendor(vendorId);
-            return ResponseEntity.of(Optional.of(allOrders));
+            return ResponseEntity.ok(allOrders);
         }
     }
 
