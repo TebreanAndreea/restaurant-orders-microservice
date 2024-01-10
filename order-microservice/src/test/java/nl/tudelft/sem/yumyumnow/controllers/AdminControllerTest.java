@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 public class AdminControllerTest {
 
@@ -92,5 +93,55 @@ public class AdminControllerTest {
 
         assertEquals(HttpStatus.BAD_REQUEST, adminController.getAllOrders(100L).getStatusCode());
         assertEquals(HttpStatus.OK, adminController.getAllOrders(101L).getStatusCode());
+    }
+
+    /**
+     * Tests the modifyOrderAdmin method with invalid admin ID.
+     */
+    @Test
+    public void modifyOrderAdminInvalidAdminId() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(false);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, adminController.updateOrder(100L, 100L, new Order()).getStatusCode());
+    }
+
+    /**
+     * Tests the modifyOrderAdmin method when the order id is not found.
+     */
+    @Test
+    public void modifyOrderAdminNotFound() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
+            Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
+
+        assertEquals(HttpStatus.NOT_FOUND, adminController.updateOrder(100L, 100L, new Order()).getStatusCode());
+    }
+
+    /**
+     * Tests the modifyOrderAdmin method.
+     */
+    @Test
+    public void modifyOrderAdmin() {
+        Order order = new Order();
+        order.setOrderId(2L);
+        order.setCustomerId(3L);
+        order.setVendorId(4L);
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(order);
+
+        ResponseEntity<Void> orderReceived = adminController.updateOrder(2L, 100L, new Order());
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.OK, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void modifyOrderAdminInternalServerError() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
+
+        ResponseEntity<Void> orderReceived = adminController.updateOrder(2L, 100L, new Order());
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderReceived.getStatusCode());
     }
 }

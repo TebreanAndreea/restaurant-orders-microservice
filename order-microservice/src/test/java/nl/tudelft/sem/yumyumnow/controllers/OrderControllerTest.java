@@ -190,45 +190,6 @@ public class OrderControllerTest {
         assertEquals(orders, new ArrayList<Order>());
     }
 
-    /**
-     * Tests the modifyOrderAdmin method with invalid admin ID.
-     */
-    @Test
-    public void modifyOrderAdminInvalidAdminId() {
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(false);
-
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.modifyOrderAdmin(100L, 100L, new Order()).getStatusCode());
-    }
-
-    /**
-     * Tests the modifyOrderAdmin method when the order id is not found.
-     */
-    @Test
-    public void modifyOrderAdminNotFound() {
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
-
-        assertEquals(HttpStatus.NOT_FOUND, orderController.modifyOrderAdmin(100L, 100L, new Order()).getStatusCode());
-    }
-
-    /**
-     * Tests the modifyOrderAdmin method.
-     */
-    @Test
-    public void modifyOrderAdmin() {
-        Order order = new Order();
-        order.setOrderId(2L);
-        order.setCustomerId(3L);
-        order.setVendorId(4L);
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(order);
-
-        Order orderReceived = orderController.modifyOrderAdmin(2L, 100L, new Order()).getBody();
-        assertNotNull(orderReceived);
-        assertEquals(2L, orderReceived.getOrderId());
-        assertEquals(3L, orderReceived.getCustomerId());
-        assertEquals(4L, orderReceived.getVendorId());
-    }
 
     @Test
     public void testCompleteOrderInvalidRequests() {
