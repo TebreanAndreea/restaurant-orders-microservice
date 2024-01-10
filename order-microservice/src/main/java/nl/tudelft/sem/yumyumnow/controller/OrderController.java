@@ -2,6 +2,7 @@ package nl.tudelft.sem.yumyumnow.controller;
 
 import java.time.OffsetDateTime;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import javax.validation.Valid;
@@ -223,4 +224,26 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Retrieves an order by its ID for a specified user.
+     *
+     * @param orderId ID of the Order (required).
+     * @param userId ID of user who made the order (required).
+     * @return the order requested by the user.
+     */
+    @Override
+    public ResponseEntity<Order> getOrder(Long orderId, Long userId) {
+        if (!this.orderService.isUserAssociatedWithOrder(orderId, userId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+        try {
+            Order order = this.orderService.getOrderById(orderId);
+            return ResponseEntity.ok(order);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+    }
+
 }

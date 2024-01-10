@@ -207,4 +207,20 @@ public class OrderService {
                 && (time == null || Objects.equals(saved.getTime(), time))
                 && (dishes == null || Objects.equals(dishes, saved.getDishes()));
     }
+
+    /**
+     * Check if a user is the vendor or the customer of a specific order.
+     *
+     * @param orderId the id of the order.
+     * @param userId the id of the user.
+     * @return true if the user is a vendor or customer for the order, false otherwise.
+     */
+    public boolean isUserAssociatedWithOrder(Long orderId, Long userId) {
+        try {
+            Order order = getOrderById(orderId);
+            return order.getCustomerId().equals(userId) || order.getVendorId().equals(userId);
+        } catch (NoSuchElementException ex) {
+            return false;
+        }
+    }
 }

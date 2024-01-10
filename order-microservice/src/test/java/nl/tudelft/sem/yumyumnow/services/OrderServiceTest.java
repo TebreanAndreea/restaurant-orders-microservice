@@ -369,4 +369,22 @@ public class OrderServiceTest {
         }, "No order exists with id 15");
 
     }
+
+    @Test
+    public void testUserNotAssociatedWithOrder() {
+        this.orderService.createNewOrder(11L, 13L).setOrderId(20L);
+        assertFalse(this.orderService.isUserAssociatedWithOrder(20L, 12L));
+    }
+
+    @Test
+    public void testUserAssociatedWithOrder() {
+        this.orderService.createNewOrder(11L, 13L).setOrderId(20L);
+        assertTrue(this.orderService.isUserAssociatedWithOrder(20L, 11L));
+        assertTrue(this.orderService.isUserAssociatedWithOrder(20L, 13L));
+    }
+
+    @Test
+    public void testNonExistentOrder() {
+        assertFalse(orderService.isUserAssociatedWithOrder(9L, 15L));
+    }
 }

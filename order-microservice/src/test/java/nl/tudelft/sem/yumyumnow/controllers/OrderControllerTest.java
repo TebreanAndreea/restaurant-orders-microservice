@@ -17,6 +17,7 @@ import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
+import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -487,5 +488,37 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
                 .modifyOrder(25L, 6L, dishes, loc, status, time)
                 .getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderUnauthorized() {
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(1L, 100L)).thenReturn(false);
+
+        ResponseEntity<Order> response = this.orderController.getOrder(1L, 100L);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderNotFound() {
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(2L, 101L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(2L)).thenThrow(NoSuchElementException.class);
+
+        ResponseEntity<Order> response = this.orderController.getOrder(2L, 101L);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderFound() {
+        Order order = new Order();
+
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(3L, 102L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(3L)).thenReturn(order);
+
+        ResponseEntity<Order> response = this.orderController.getOrder(3L, 102L);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
     }
 }
