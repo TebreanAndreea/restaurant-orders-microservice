@@ -246,4 +246,26 @@ public class OrderController implements OrderApi {
         }
     }
 
+    /**
+     * Remove an orders by its id.
+     *
+     * @param orderId ID of the order being removed (required)
+     * @param userId ID of user removing the order (required)
+     * @return a Response Entity containing the order created, or an error code
+     */
+    @Override
+    public ResponseEntity<Void> deleteOrder(Long orderId, Long userId) {
+        if (!this.authenticationService.isAdmin(userId) && !this.authenticationService.isAdmin(userId)
+                && !this.authenticationService.isVendor(userId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            boolean deleted = this.orderService.deleteOrder(orderId);
+            if (deleted) {
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
+    }
+
 }

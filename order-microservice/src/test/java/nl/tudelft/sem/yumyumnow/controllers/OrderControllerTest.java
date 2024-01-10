@@ -521,4 +521,40 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
     }
+
+    /**
+     * Tests the deleteOrder method.
+     */
+    @Test
+    public void deleteOrder() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
+        Mockito.when(this.orderService.deleteOrder(Mockito.anyLong())).thenReturn(true);
+
+        ResponseEntity<Void> statusCode = orderController.deleteOrder(2L, 100L);
+        assertEquals(statusCode, new ResponseEntity<>(HttpStatus.OK));
+    }
+
+    /**
+     * Tests the deleteOrder method when the admin is unauthorized.
+     */
+    @Test
+    public void deleteOrderNotAuthorized() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(false);
+        Mockito.when(this.orderService.deleteOrder(Mockito.anyLong())).thenReturn(true);
+
+        ResponseEntity<Void> statusCode = orderController.deleteOrder(2L, 100L);
+        assertEquals(statusCode, new ResponseEntity<>(HttpStatus.UNAUTHORIZED));
+    }
+
+    /**
+     * Tests the deleteOrder method when the order is not found.
+     */
+    @Test
+    public void deleteOrderNotFound() {
+        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
+        Mockito.when(this.orderService.deleteOrder(Mockito.anyLong())).thenReturn(false);
+
+        ResponseEntity<Void> statusCode = orderController.deleteOrder(2L, 100L);
+        assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
 }
