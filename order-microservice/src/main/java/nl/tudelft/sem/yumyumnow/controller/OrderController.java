@@ -229,7 +229,7 @@ public class OrderController implements OrderApi {
      */
     @Override
     public ResponseEntity<Void> deleteOrder(Long orderId, Long userId) {
-        if (!this.authenticationService.isAdmin(userId) && !this.authenticationService.isAdmin(userId)
+        if (!this.authenticationService.isAdmin(userId) && !this.authenticationService.isCustomer(userId)
                 && !this.authenticationService.isVendor(userId)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {
