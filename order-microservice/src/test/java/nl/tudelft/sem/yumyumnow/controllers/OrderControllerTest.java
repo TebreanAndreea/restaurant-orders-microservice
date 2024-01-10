@@ -86,71 +86,17 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests if the method getAllOrders returns a correct List of Orders.
+     * Tests the getListOfOrdersForCustomers method with invalid customer ID.
      */
     @Test
-    public void testGetAllOrders() {
-        Order order1 = new Order();
-        order1.setCustomerId(2L);
-        order1.setVendorId(3L);
-        Order order2 = new Order();
-        order2.setCustomerId(6L);
-        order2.setVendorId(7L);
-        List<Order> orders = new ArrayList<>();
-        orders.add(order1);
-        orders.add(order2);
-
-        Mockito.when(this.authenticationService.isAdmin(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(this.orderService.getAllOrders()).thenReturn(orders);
-
-        List<Order> ordersReceived = orderController.getAllOrdersAdmin(2L).getBody();
-        assertNotNull(ordersReceived);
-        assertEquals(2L, ordersReceived.get(0).getCustomerId());
-        assertEquals(3L, ordersReceived.get(0).getVendorId());
-        assertEquals(6L, ordersReceived.get(1).getCustomerId());
-        assertEquals(7L, ordersReceived.get(1).getVendorId());
-        assertEquals(2, ordersReceived.size());
-    }
-
-    /**
-     * Tests if the method getAllOrders returns a correct List of Orders if there are no orders in the database.
-     */
-    @Test
-    public void testGetAllOrdersNoOrders() {
-        Mockito.when(this.authenticationService.isAdmin(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(this.orderService.getAllOrders()).thenReturn(new ArrayList<Order>());
-
-        List<Order> orders = orderController.getAllOrdersAdmin(2L).getBody();
-        assertNotNull(orders);
-        assertEquals(orders, new ArrayList<Order>());
-    }
-
-    /**
-     * Tests the getAllOrder method with invalid admin ID.
-     */
-    @Test
-    public void testInvalidAdminId() {
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(false);
-        Mockito.when(this.authenticationService.isAdmin(101L)).thenReturn(true);
-
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersAdmin(100L).getStatusCode());
-        assertEquals(HttpStatus.OK, orderController.getAllOrdersAdmin(101L).getStatusCode());
-    }
-
-    /**
-     * Tests the getAllOrdersCustomer method with invalid customer ID.
-     */
-    @Test
-    public void getAllOrdersCustomerInvalidId() {
+    public void getListOfOrdersForCustomersInvalidId() {
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
-        Mockito.when(this.authenticationService.isCustomer(101L)).thenReturn(true);
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersCustomer(100L).getStatusCode());
-        assertEquals(HttpStatus.OK, orderController.getAllOrdersCustomer(101L).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, orderController.getListOfOrdersForCustomers(100L).getStatusCode());
     }
 
     /**
-     * Tests if the method getAllOrdersCustomer returns a correct List of Orders.
+     * Tests if the method getListOfOrdersForCustomers returns a correct List of Orders.
      */
     @Test
     public void testGetAllOrdersCustomer() {
@@ -167,7 +113,7 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(orders);
 
-        List<Order> ordersReceived = orderController.getAllOrdersCustomer(2L).getBody();
+        List<Order> ordersReceived = orderController.getListOfOrdersForCustomers(2L).getBody();
         assertNotNull(ordersReceived);
         assertEquals(2L, ordersReceived.get(0).getCustomerId());
         assertEquals(3L, ordersReceived.get(0).getVendorId());
@@ -177,7 +123,7 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests if the method getAllOrdersCustomer returns a correct List of Orders if there
+     * Tests if the method getListOfOrdersForCustomers returns a correct List of Orders if there
      * are no orders.
      */
     @Test
@@ -185,25 +131,32 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenReturn(new ArrayList<Order>());
 
-        List<Order> orders = orderController.getAllOrdersCustomer(2L).getBody();
+        List<Order> orders = orderController.getListOfOrdersForCustomers(2L).getBody();
         assertNotNull(orders);
         assertEquals(orders, new ArrayList<Order>());
     }
 
-    /**
-     * Tests the getAllOrdersVendor method with invalid Vendor ID.
-     */
     @Test
-    public void getAllOrdersVendorInvalidId() {
-        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(false);
-        Mockito.when(this.authenticationService.isVendor(101L)).thenReturn(true);
+    public void testGetAllOrdersCustomerInternalError() {
+        Mockito.when(this.authenticationService.isCustomer(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForCustomer(Mockito.anyLong())).thenThrow(new
+            NoSuchElementException("No order exists with id 25"));
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.getAllOrdersVendor(100L).getStatusCode());
-        assertEquals(HttpStatus.OK, orderController.getAllOrdersVendor(101L).getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderController.getListOfOrdersForCustomers(2L).getStatusCode());
     }
 
     /**
-     * Tests if the method getAllOrdersVendor returns a correct List of Orders.
+     * Tests the getListOfOrdersForVendor method with invalid Vendor ID.
+     */
+    @Test
+    public void getListOfOrdersForVendorInvalidId() {
+        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(false);
+
+        assertEquals(HttpStatus.NOT_FOUND, orderController.getListOfOrdersForVendor(100L).getStatusCode());
+    }
+
+    /**
+     * Tests if the method getListOfOrdersForVendor returns a correct List of Orders.
      */
     @Test
     public void testGetAllOrdersVendor() {
@@ -220,7 +173,7 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenReturn(orders);
 
-        List<Order> ordersReceived = orderController.getAllOrdersVendor(3L).getBody();
+        List<Order> ordersReceived = orderController.getListOfOrdersForVendor(3L).getBody();
         assertNotNull(ordersReceived);
         assertEquals(1L, ordersReceived.get(0).getCustomerId());
         assertEquals(3L, ordersReceived.get(0).getVendorId());
@@ -230,7 +183,7 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests if the method getAllOrdersVendor returns a correct List of Orders if there
+     * Tests if the method getListOfOrdersForVendor returns a correct List of Orders if there
      * are no orders.
      */
     @Test
@@ -238,50 +191,20 @@ public class OrderControllerTest {
         Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
         Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenReturn(new ArrayList<Order>());
 
-        List<Order> orders = orderController.getAllOrdersVendor(2L).getBody();
+        List<Order> orders = orderController.getListOfOrdersForVendor(2L).getBody();
         assertNotNull(orders);
         assertEquals(orders, new ArrayList<Order>());
     }
 
-    /**
-     * Tests the modifyOrderAdmin method with invalid admin ID.
-     */
     @Test
-    public void modifyOrderAdminInvalidAdminId() {
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(false);
+    public void testGetAllOrdersVendorInternalError() {
+        Mockito.when(this.authenticationService.isVendor(Mockito.anyLong())).thenReturn(true);
+        Mockito.when(this.orderService.getAllOrdersForVendor(Mockito.anyLong())).thenThrow(new
+            NoSuchElementException("No order exists with id 25"));
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.modifyOrderAdmin(100L, 100L, new Order()).getStatusCode());
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderController.getListOfOrdersForVendor(2L).getStatusCode());
     }
 
-    /**
-     * Tests the modifyOrderAdmin method when the order id is not found.
-     */
-    @Test
-    public void modifyOrderAdminNotFound() {
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
-
-        assertEquals(HttpStatus.NOT_FOUND, orderController.modifyOrderAdmin(100L, 100L, new Order()).getStatusCode());
-    }
-
-    /**
-     * Tests the modifyOrderAdmin method.
-     */
-    @Test
-    public void modifyOrderAdmin() {
-        Order order = new Order();
-        order.setOrderId(2L);
-        order.setCustomerId(3L);
-        order.setVendorId(4L);
-        Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(order);
-
-        Order orderReceived = orderController.modifyOrderAdmin(2L, 100L, new Order()).getBody();
-        assertNotNull(orderReceived);
-        assertEquals(2L, orderReceived.getOrderId());
-        assertEquals(3L, orderReceived.getCustomerId());
-        assertEquals(4L, orderReceived.getVendorId());
-    }
 
     @Test
     public void testCompleteOrderInvalidRequests() {
@@ -318,71 +241,112 @@ public class OrderControllerTest {
     }
 
     /**
-     * Tests the addDishesToOrder method with invalid customer ID.
+     * Tests the addDishToOrder method with invalid customer ID.
      */
     @Test
-    public void addDishesToOrderInvalidCustomerId() {
+    public void addDishToOrderInvalidCustomerId() {
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(false);
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.addDishesToOrder(100L, 100L,
-                new ArrayList<Dish>()).getStatusCode());
+        assertEquals(HttpStatus.NOT_FOUND, orderController.addDishToOrder(100L, 100L,
+                new Dish()).getStatusCode());
     }
 
     /**
-     * Tests the addDishesToOrder method when the list of dishes to add is empty.
+     * Tests the addDishToOrder method when the dish to add is null.
      */
     @Test
-    public void addDishesToOrderNoDishes() {
+    public void addDishToOrderNoDishes() {
+        Order order = new Order();
+        order.setCustomerId(100L);
+
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
 
-        assertEquals(HttpStatus.BAD_REQUEST, orderController.addDishesToOrder(100L,
-                100L, new ArrayList<Dish>()).getStatusCode());
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, null);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     /**
-     * Tests the addDishesToOrder method when the order id is not found.
+     * Tests the addDishToOrder method when the order id is not found.
      */
     @Test
-    public void addDishesToOrderNotFound() {
+    public void addDishToOrderNotFound() {
         Dish d1 = new Dish();
-        Dish d2 = new Dish();
-        List<Dish> dishes = new ArrayList<>();
-        dishes.add(d1);
-        dishes.add(d2);
-        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
-        Mockito.when(this.orderService.addDishesToOrder(Mockito.anyLong(), Mockito.any(List.class))).thenReturn(null);
+        d1.setName("Pizza");
 
-        assertEquals(HttpStatus.NOT_FOUND, orderController.addDishesToOrder(100L, 100L, dishes).getStatusCode());
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     /**
-     * Tests the addDishesToOrder method.
+     * Tests the addDishToOrder method.
      */
     @Test
-    public void addDishesToOrder() {
+    public void addDishToOrder() {
         Dish d1 = new Dish();
-        Dish d2 = new Dish();
-        final Dish d3 = new Dish();
-        final Dish d4 = new Dish();
-        List<Dish> dishes = new ArrayList<>();
-        dishes.add(d1);
-        dishes.add(d2);
-        List<Dish> allDishes = new ArrayList<>();
-        allDishes.add(d1);
-        allDishes.add(d2);
-        allDishes.add(d3);
-        allDishes.add(d4);
+        d1.setName("Pizza");
+
+        Order order = new Order();
+        order.setCustomerId(100L);
 
         Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
-        Mockito.when(this.orderService.addDishesToOrder(Mockito.anyLong(), Mockito.any(List.class))).thenReturn(allDishes);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
 
-        List<Dish> allDishesAfterAdding = orderController.addDishesToOrder(2L, 100L, dishes).getBody();
-        assert allDishesAfterAdding != null;
-        assertTrue(allDishesAfterAdding.contains(d1));
-        assertTrue(allDishesAfterAdding.contains(d2));
-        assertTrue(allDishesAfterAdding.contains(d3));
-        assertTrue(allDishesAfterAdding.contains(d4));
-        assertEquals(allDishesAfterAdding, allDishes);
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void addDishToOrderUnauthorized() {
+        Order order = new Order();
+        order.setCustomerId(200L);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, new Dish());
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void addDishToOrderNullSaved() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
+
+        Order order = new Order();
+        order.setCustomerId(100L);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
+        Mockito.when(this.orderService.addDishToOrder(100L, d1)).thenReturn(null);
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testAddDishToOrderInternalError() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
+
+        Order order = new Order();
+        order.setCustomerId(100L);
+
+        Mockito.when(this.authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(this.orderService.existsAtId(100L)).thenReturn(true);
+        Mockito.when(this.orderService.getOrderById(100L)).thenReturn(order);
+        Mockito.when(this.orderService.addDishToOrder(100L, d1)).thenThrow(new
+            NoSuchElementException("No order exists with id 25"));
+
+        ResponseEntity<Void> response = orderController.addDishToOrder(100L, 100L, d1);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
 

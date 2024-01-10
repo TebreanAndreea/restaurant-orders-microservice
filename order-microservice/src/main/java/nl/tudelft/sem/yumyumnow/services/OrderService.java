@@ -151,21 +151,21 @@ public class OrderService {
     }
 
     /**
-     * Add multiple dishes to order.
+     * Add dish to order.
      *
      * @param orderId The id of the order we want to add dishes to.
-     * @param dishes The list of dishes that will be added to the order.
+     * @param dish The list of dishes that will be added to the order.
      * @return The list of dishes in the order after adding them.
      */
-    public List<Dish> addDishesToOrder(Long orderId, List<Dish> dishes) {
+    public List<Dish> addDishToOrder(Long orderId, Dish dish) {
         Optional<Order> modifiedOrderOptional = this.orderRepository.findById(orderId);
-        List<Dish> allDishes = dishes;
         if (modifiedOrderOptional.isPresent()) {
             Order modifiedOrder = modifiedOrderOptional.get();
-            List<Dish> allDishesInTheOrder = modifiedOrder.getDishes();
-            if (allDishesInTheOrder != null) {
-                allDishes.addAll(allDishesInTheOrder);
+            List<Dish> allDishes = modifiedOrder.getDishes();
+            if (allDishes == null) {
+                allDishes = new ArrayList<>();
             }
+            allDishes.add(dish);
             modifiedOrder.setDishes(allDishes);
             this.orderRepository.save(modifiedOrder);
             return allDishes;
