@@ -61,22 +61,6 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * An admin can view all orders in the system.
-     *
-     * @param adminId ID of admin viewing all the orders (required)
-     * @return a Response Entity containing the order created, or an error code
-     */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersAdmin(Long adminId) {
-        if (!this.authenticationService.isAdmin(adminId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
-            List<Order> allOrders = this.orderService.getAllOrders();
-            return ResponseEntity.of(Optional.of(allOrders));
-        }
-    }
-
-    /**
      * A customer can view all orders in the system.
      *
      * @param customerId ID of customer viewing all the orders (required)
