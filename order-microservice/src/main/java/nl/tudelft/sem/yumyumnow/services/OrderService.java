@@ -223,4 +223,21 @@ public class OrderService {
             return false;
         }
     }
+
+    /**
+     * Deletes an order by id.
+     *
+     * @param orderId the id of the order to delete
+     * @return A boolean specifying whether the order is deleted or not
+     */
+    public Boolean deleteOrder(Long orderId) {
+        Optional<Order> optionalOrder = this.orderRepository.findById(orderId);
+        if (optionalOrder.isPresent()) {
+            Order orderToDelete = optionalOrder.get();
+            this.orderRepository.delete(orderToDelete);
+            return true;
+        } else {
+            return false;
+        }
+    }
 }

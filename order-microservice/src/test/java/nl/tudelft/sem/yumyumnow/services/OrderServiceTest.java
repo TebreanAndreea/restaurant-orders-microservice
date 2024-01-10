@@ -389,4 +389,23 @@ public class OrderServiceTest {
     public void testNonExistentOrder() {
         assertFalse(orderService.isUserAssociatedWithOrder(9L, 15L));
     }
+
+    /**
+     * Tests if the method deleteOrder deletes the order.
+     */
+    @Test
+    public void testDeleteOrder() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(2L, 15L);
+
+
+        Boolean deleted1 = this.orderService.deleteOrder(order1.getOrderId());
+        Boolean deleted2 = this.orderService.deleteOrder(38290L);
+        assertEquals(5, this.orderRepository.getMethodCalls().size());
+        List<Order> foundOrders = this.orderService.getAllOrders();
+
+        assertEquals(deleted1, true);
+        assertEquals(deleted2, false);
+        assertEquals(foundOrders.size(), 1);
+    }
 }

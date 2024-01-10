@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 public class AdminController implements AdminApi {
-
     private final OrderService orderService;
     private final AuthenticationService authenticationService;
     private final CompletionFactory orderCompletionService;
@@ -28,10 +27,32 @@ public class AdminController implements AdminApi {
      */
     @Autowired
     public AdminController(OrderService orderService, AuthenticationService authenticationService,
-        CompletionFactory orderCompletionService) {
+                           CompletionFactory orderCompletionService) {
         this.orderService = orderService;
         this.authenticationService = authenticationService;
         this.orderCompletionService = orderCompletionService;
+    }
+
+
+    /**
+     * An admin can remove an orders by its id.
+     *
+     * @param orderId ID of the order being removed (required)
+     * @param adminId ID of admin removing the order (required)
+     * @return a Response Entity containing the order created, or an error code
+     */
+    @Override
+    public ResponseEntity<Void> removeOrder(Long orderId, Long adminId) {
+        if (!this.authenticationService.isAdmin(adminId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        } else {
+            boolean deleted = this.orderService.deleteOrder(orderId);
+            if (deleted) {
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        }
     }
 
     /**
