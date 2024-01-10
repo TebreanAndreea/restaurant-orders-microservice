@@ -62,34 +62,21 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * An admin can view all orders in the system.
-     *
-     * @param adminId ID of admin viewing all the orders (required)
-     * @return a Response Entity containing the order created, or an error code
-     */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersAdmin(Long adminId) {
-        if (!this.authenticationService.isAdmin(adminId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
-            List<Order> allOrders = this.orderService.getAllOrders();
-            return ResponseEntity.of(Optional.of(allOrders));
-        }
-    }
-
-    /**
-     * A customer can view all orders in the system.
+     * Get a list of all orders for a customer.
      *
      * @param customerId ID of customer viewing all the orders (required)
-     * @return a Response Entity containing the order created, or an error code
+     * @return a Response Entity containing the list of orders, or error code
      */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersCustomer(Long customerId) {
+    @Override
+    public ResponseEntity<List<Order>> getListOfOrdersForCustomers(Long customerId) {
         if (!this.authenticationService.isCustomer(customerId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        try {
             List<Order> allOrders = this.orderService.getAllOrdersForCustomer(customerId);
-            return ResponseEntity.of(Optional.of(allOrders));
+            return ResponseEntity.ok(allOrders);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -99,35 +86,16 @@ public class OrderController implements OrderApi {
      * @param vendorId ID of vendor viewing all the orders (required)
      * @return a Response Entity containing the order created, or an error code
      */
-    //@Override
-    public ResponseEntity<List<Order>> getAllOrdersVendor(Long vendorId) {
+    @Override
+    public ResponseEntity<List<Order>> getListOfOrdersForVendor(Long vendorId) {
         if (!this.authenticationService.isVendor(vendorId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
-            List<Order> allOrders = this.orderService.getAllOrdersForVendor(vendorId);
-            return ResponseEntity.of(Optional.of(allOrders));
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-    }
-
-    /**
-     * Let an admin modify an order.
-     *
-     * @param orderId  The order to be modified.
-     * @param adminId  The id of the admin modifying the order.
-     * @param newOrder The new order the old order will be modified to.
-     * @return The modified order
-     */
-    public ResponseEntity<Order> modifyOrderAdmin(Long orderId, Long adminId, Order newOrder) {
-        if (!this.authenticationService.isAdmin(adminId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else {
-            Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
-
-            if (modifiedOrder == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            }
-
-            return ResponseEntity.of(Optional.of(modifiedOrder));
+        try {
+            List<Order> allOrders = this.orderService.getAllOrdersForVendor(vendorId);
+            return ResponseEntity.ok(allOrders);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -164,26 +132,32 @@ public class OrderController implements OrderApi {
     }
 
     /**
-     * Add multiple dishes to order.
+     * Add one dishes to order.
      *
      * @param orderId     The id of the order we want to add dishes to.
      * @param customerId  The id of the customer.
-     * @param dishesToAdd The list of dishes that will be added to the order
+     * @param dish The dish we want to add to the order.
      * @return The list of all dishes of the order.
      */
-    public ResponseEntity<List<Dish>> addDishesToOrder(Long orderId, Long customerId, List<Dish> dishesToAdd) {
-        if (!this.authenticationService.isCustomer(customerId)) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
-        } else if (dishesToAdd.isEmpty()) {
-            return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+    @Override
+    public ResponseEntity<Void> addDishToOrder(Long orderId, Long customerId, Dish dish) {
+        if (!this.authenticationService.isCustomer(customerId) || !this.orderService.existsAtId(orderId)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (!this.orderService.getOrderById(orderId).getCustomerId().equals(customerId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         } else {
-            List<Dish> allDishesFromOrder = this.orderService.addDishesToOrder(orderId, dishesToAdd);
-
-            if (allDishesFromOrder == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            try {
+                if (dish == null) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                List<Dish> savedDish = this.orderService.addDishToOrder(orderId, dish);
+                if (savedDish == null) {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+                return new ResponseEntity<>(HttpStatus.OK);
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-            return ResponseEntity.of(Optional.of(allDishesFromOrder));
         }
     }
 
