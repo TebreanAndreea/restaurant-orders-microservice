@@ -33,6 +33,7 @@ public class AuthenticationServiceTest {
 
         assertTrue(this.authenticationService.isCustomer(114L));
         assertFalse(this.authenticationService.isVendor(114L));
+        assertFalse(this.authenticationService.isAdmin(114L));
     }
 
     @Test
@@ -42,6 +43,17 @@ public class AuthenticationServiceTest {
 
         assertTrue(this.authenticationService.isVendor(45L));
         assertFalse(this.authenticationService.isCustomer(45L));
+        assertFalse(this.authenticationService.isAdmin(45L));
+    }
+
+    @Test
+    public void testIsAdmin() {
+        Mockito.when(restTemplate.getForEntity("http://localhost:8081/user/3", String.class))
+                .thenReturn(ResponseEntity.ok("admin"));
+
+        assertTrue(this.authenticationService.isAdmin(3L));
+        assertFalse(this.authenticationService.isCustomer(3L));
+        assertFalse(this.authenticationService.isVendor(3L));
     }
 
     @Test
@@ -51,6 +63,7 @@ public class AuthenticationServiceTest {
 
         assertFalse(this.authenticationService.isCustomer(11111L));
         assertFalse(this.authenticationService.isVendor(11111L));
+        assertFalse(this.authenticationService.isAdmin(11111L));
     }
 
     @Test
@@ -60,5 +73,6 @@ public class AuthenticationServiceTest {
 
         assertFalse(this.authenticationService.isCustomer(20L));
         assertFalse(this.authenticationService.isVendor(20L));
+        assertFalse(this.authenticationService.isAdmin(20L));
     }
 }

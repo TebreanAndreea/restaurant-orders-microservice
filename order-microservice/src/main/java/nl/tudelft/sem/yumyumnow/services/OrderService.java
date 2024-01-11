@@ -1,16 +1,18 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.OrderRepository;
+import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 
 @Service
@@ -18,19 +20,19 @@ public class OrderService {
 
 
     private final OrderRepository orderRepository;
-    private final UserService userService;
+    private final CustomerService userService;
 
 
     /**
      * Creates a new Order Service.
      *
      * @param repository  the DB instance where the Orders are stored
-     * @param userService an instance of the user service
+     * @param customerService an instance of the user service
      */
     @Autowired
-    public OrderService(OrderRepository repository, UserService userService) {
+    public OrderService(OrderRepository repository, CustomerService customerService) {
         this.orderRepository = repository;
-        this.userService = userService;
+        this.userService = customerService;
     }
 
 
@@ -122,5 +124,120 @@ public class OrderService {
             return modifiedOrder;
         }
         return null;
+    }
+
+    /**
+     * Updates the status of an order, and saves the changes to the DB.
+     *
+     * @param orderId the order to modify.
+     * @param status the new order status.
+     * @return true if the order was modified successfully.
+     */
+    public boolean setOrderStatus(Long orderId, Order.StatusEnum status) {
+        Order order = getOrderById(orderId);
+        order.setStatus(status);
+        Order saved = this.orderRepository.save(order);
+        return saved.getStatus() == status;
+    }
+
+    /**
+     * Checks if an order belongs to the specified id in the DB.
+     *
+     * @param orderId the order id to check.
+     * @return true if an order is associated to the ID in the DB.
+     */
+    public boolean existsAtId(Long orderId) {
+        return this.orderRepository.existsById(orderId);
+    }
+
+    /**
+     * Add dish to order.
+     *
+     * @param orderId The id of the order we want to add dishes to.
+     * @param dish The list of dishes that will be added to the order.
+     * @return The list of dishes in the order after adding them.
+     */
+    public List<Dish> addDishToOrder(Long orderId, Dish dish) {
+        Optional<Order> modifiedOrderOptional = this.orderRepository.findById(orderId);
+        if (modifiedOrderOptional.isPresent()) {
+            Order modifiedOrder = modifiedOrderOptional.get();
+            List<Dish> allDishes = modifiedOrder.getDishes();
+            if (allDishes == null) {
+                allDishes = new ArrayList<>();
+            }
+            allDishes.add(dish);
+            modifiedOrder.setDishes(allDishes);
+            this.orderRepository.save(modifiedOrder);
+            return allDishes;
+        }
+        return null;
+    }
+
+    /**
+     * Updates an order by ID and saves it to the DB.
+     * If a parameter is null, the corresponding order attribute will not be updated.
+     *
+     * @param orderId the ID of the order to modify
+     * @param dishes the new list of dishes
+     * @param location the new delivery location
+     * @param status the new order status
+     * @param time the new delivery time
+     * @return true if the order was successfully updated
+     */
+    public boolean updateOrder(Long orderId, List<Dish> dishes, Location location,
+                               Order.StatusEnum status, OffsetDateTime time) {
+        Order order = this.getOrderById(orderId);
+        if (dishes != null) {
+            order.setDishes(dishes);
+        }
+        if (location != null) {
+            order.setLocation(location);
+        }
+        if (status != null) {
+            order.setStatus(status);
+        }
+        if (time != null) {
+            order.setTime(time);
+        }
+        order.dishes(dishes).location(location).status(status).time(time);
+        Order saved = this.orderRepository.save(order);
+        return Objects.equals(saved.getOrderId(), orderId)
+                && (location == null || Objects.equals(saved.getLocation(), location))
+                && (status == null || Objects.equals(saved.getStatus(), status))
+                && (time == null || Objects.equals(saved.getTime(), time))
+                && (dishes == null || Objects.equals(dishes, saved.getDishes()));
+    }
+
+    /**
+     * Check if a user is the vendor or the customer of a specific order.
+     *
+     * @param orderId the id of the order.
+     * @param userId the id of the user.
+     * @return true if the user is a vendor or customer for the order, false otherwise.
+     */
+    public boolean isUserAssociatedWithOrder(Long orderId, Long userId) {
+        try {
+            Order order = getOrderById(orderId);
+            return order.getCustomerId().equals(userId) || order.getVendorId().equals(userId);
+        } catch (NoSuchElementException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Deletes an order by id.
+     *
+     * @param orderId the id of the order to delete
+     * @return A boolean specifying whether the order is deleted or not
+     */
+    public Boolean deleteOrder(Long orderId) {
+        Optional<Order> optionalOrder = this.orderRepository.findById(orderId);
+        if (optionalOrder.isPresent()) {
+            Order orderToDelete = optionalOrder.get();
+            this.orderRepository.delete(orderToDelete);
+            return true;
+        } else {
+            return false;
+        }
     }
 }
