@@ -1,5 +1,8 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.util.ArrayList;
+import java.util.List;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.services.requests.PutRequest;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -18,19 +21,36 @@ public class CustomerService {
         this.integrationService = integrationService;
     }
 
+
+    /**
+     * Geting a customer based of its id from the user microservice.
+     *
+     * @param customerId The id of the customer we want to receive.
+     * @return The customer with the corresponding id.
+     */
+    public Customer getCustomer(Long customerId) {
+        ResponseEntity<Customer> response = integrationService.getRestTemplate()
+            .getForEntity(url + "/customer/"
+            + customerId, Customer.class);
+        if (response.getStatusCode().isError()) {
+            return null;
+        }
+        return response.getBody();
+    }
     /**
      * this method return the default home address of a customer.
      *
      * @param customerId id of the customer
      * @return location
      */
+
     public Location getDefaultHomeAddress(Long customerId) {
-        Location location = integrationService.getRestTemplate().getForEntity(url + "/customer/location/"
-            + customerId, Location.class).getBody();
-        if (location == null) {
-            return new Location();
+        ResponseEntity<Location> response = integrationService.getRestTemplate().getForEntity(url + "/customer/location/"
+            + customerId, Location.class);
+        if (response.getStatusCode().isError()) {
+            return null;
         }
-        return location;
+        return response.getBody();
     }
 
 

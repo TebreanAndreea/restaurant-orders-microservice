@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
@@ -166,8 +167,31 @@ public class VendorControllerTest {
     }
 
     @Test
+    public void unauthorizedAccessTestToGetDishesNoCustomer() {
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(true);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
     public void unauthorizedAccessTestToGetDishes() {
         Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(false);
+
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void unauthorizedAccessTestToGetDishesNoVendor() {
+        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(false);
 
         ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(100L, 12L);
 
@@ -178,13 +202,13 @@ public class VendorControllerTest {
     @Test
     public void testGetVendorDishNoVendor() {
 
-        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
-
+        Mockito.when(this.authenticationService.isCustomer(13L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(10L)).thenReturn(true);
 
         Mockito.when(this.vendorRepository.findById(10L)).thenThrow(RuntimeException.class);
-        Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(null);
+        Mockito.when(this.vendorService.getVendorDishesforCustomer(10L, 13L)).thenReturn(null);
 
-        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 12L);
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 13L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -192,16 +216,19 @@ public class VendorControllerTest {
 
     @Test
     public void testGetVendorDishValid() {
-        Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(13L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(10L)).thenReturn(true);
+        Customer customer = new Customer();
+        customer.setId(13L);
         Dish dish1 = new Dish();
         Dish dish2 = new Dish();
         List<Dish> dishes = new ArrayList<>();
         dishes.add(dish1);
         dishes.add(dish2);
 
-        Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(dishes);
+        Mockito.when(this.vendorService.getVendorDishesforCustomer(10L, 13L)).thenReturn(dishes);
 
-        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 12L);
+        ResponseEntity<List<Dish>> response = vendorController.getVendorDishes(10L, 13L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -211,6 +238,7 @@ public class VendorControllerTest {
     @Test
     public void testGetVendorDishValidEmptyList() {
         Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(10L)).thenReturn(true);
         List<Dish> dishes = new ArrayList<>();
         Mockito.when(this.vendorService.getVendorDishes(10L)).thenReturn(dishes);
 
