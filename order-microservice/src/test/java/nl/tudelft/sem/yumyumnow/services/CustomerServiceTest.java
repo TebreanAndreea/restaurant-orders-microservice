@@ -7,6 +7,9 @@ import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.ArrayList;
+import java.util.List;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -29,6 +32,30 @@ class CustomerServiceTest {
     }
 
     @Test
+    void getCustomerTest() {
+        Customer customer = new Customer();
+        customer.setId((long) 123);
+        when(restTemplate.getForEntity("http://localhost:8081/customer/123", Customer.class))
+            .thenReturn(new ResponseEntity<>(customer, HttpStatus.OK));
+
+        Customer result = customerService.getCustomer((long) 123);
+        assertEquals(customer, result);
+        assertEquals(result.getId(), (long) 123);
+        verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/123", Customer.class);
+    }
+
+    @Test
+    void getCustomerTestNoCustomer() {
+        when(restTemplate.getForEntity("http://localhost:8081/customer/123", Customer.class))
+            .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        Customer result = customerService.getCustomer((long) 123);
+        assertNull(result);
+        verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/123", Customer.class);
+
+    }
+
+    @Test
     void getDefaultHomeAddressTest() {
         Location location = new Location();
         location.setLatitude(83.56);
@@ -43,7 +70,7 @@ class CustomerServiceTest {
     }
 
     @Test
-    void noAddressTest() {
+    void emptyAddressTest() {
         Location location = new Location();
         when(restTemplate.getForEntity("http://localhost:8081/customer/location/124", Location.class))
             .thenReturn(new ResponseEntity<>(location, HttpStatus.OK));
@@ -52,6 +79,18 @@ class CustomerServiceTest {
 
         assertEquals(location, result);
         verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/124", Location.class);
+    }
+
+    @Test
+    void noAddressTest() {
+        when(restTemplate.getForEntity("http://localhost:8081/customer/location/124", Location.class))
+            .thenReturn(new ResponseEntity<>(HttpStatus.NOT_FOUND));
+
+        Location result = customerService.getDefaultHomeAddress((long) 124);
+
+        assertNull(result);
+        verify(restTemplate, times(1)).getForEntity("http://localhost:8081/customer/location/124", Location.class);
+
     }
 
     @Test
