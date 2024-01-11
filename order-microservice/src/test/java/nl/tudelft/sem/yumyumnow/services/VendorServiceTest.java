@@ -32,7 +32,6 @@ public class VendorServiceTest {
     public void setup() {
         this.vendorRepository = new TestVendorRepository();
         this.orderService = mock(OrderService.class);
-        this.vendorService = new VendorService(this.vendorRepository, orderService);
         this.customerService = mock(CustomerService.class);
         this.vendorService = new VendorService(this.vendorRepository, customerService, orderService);
     }
@@ -83,7 +82,6 @@ public class VendorServiceTest {
     }
 
     @Test
-<<<<<<< order-microservice/src/test/java/nl/tudelft/sem/yumyumnow/services/VendorServiceTest.java
     public void testGetDishesToPrepareNullOrders() {
         when(this.orderService.getAllOrdersForVendor(1L)).thenReturn(null);
         Vendor vendor = new Vendor();
@@ -151,7 +149,9 @@ public class VendorServiceTest {
         this.vendorRepository.save(vendor);
         when(this.orderService.getAllOrdersForVendor(id)).thenReturn(orders);
         assertEquals(dishes2, this.vendorService.getDishesToPrepare(13L, id));
-=======
+    }
+
+    @Test
     public void testGetVendorDishesForCustomerNoAllergies() {
         Long id = this.vendorRepository.count();
         Vendor vendor = new Vendor();
@@ -258,7 +258,6 @@ public class VendorServiceTest {
         when(customerService.getCustomer(13L)).thenReturn(null);
         List<Dish> dishesRetrive = this.vendorService.getVendorDishesforCustomer(112L, 13L);
         assertNull(dishesRetrive);
->>>>>>> order-microservice/src/test/java/nl/tudelft/sem/yumyumnow/services/VendorServiceTest.java
     }
 
     @Test

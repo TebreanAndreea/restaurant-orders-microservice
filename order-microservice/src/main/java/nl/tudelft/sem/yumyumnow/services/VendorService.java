@@ -22,6 +22,13 @@ public class VendorService {
     private final CustomerService customerService;
 
 
+    /**
+     * Creates a new Vendor Service.
+     *
+     * @param repository the DB instance where the Vendors are stored
+     * @param customerService an instance of the user service
+     * @param orderService an instance of the order service
+     */
     @Autowired
     public VendorService(VendorRepository repository, CustomerService customerService, OrderService orderService) {
         this.vendorRepository = repository;
