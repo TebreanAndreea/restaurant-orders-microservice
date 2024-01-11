@@ -220,7 +220,57 @@ public class VendorControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(0, response.getBody().size());
         assertEquals(dishes, response.getBody());
+    }
 
+    @Test
+    public void testGetDishesToPrepareUnauthorized() {
+        Mockito.when(this.authenticationService.isVendor(12L)).thenReturn(false);
+
+        ResponseEntity<List<Dish>> response = vendorController.getDishesToPrepare(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetDishesToPrepareNoOrder() {
+        Mockito.when(this.authenticationService.isVendor(12L)).thenReturn(true);
+        Mockito.when(this.vendorService.getDishesToPrepare(100L, 12L)).thenReturn(null);
+
+        ResponseEntity<List<Dish>> response = vendorController.getDishesToPrepare(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetDishesToPrepareValid() {
+        Dish dish1 = new Dish();
+        Dish dish2 = new Dish();
+        List<Dish> dishes = new ArrayList<>();
+        dishes.add(dish1);
+        dishes.add(dish2);
+        Mockito.when(this.authenticationService.isVendor(12L)).thenReturn(true);
+        Mockito.when(this.vendorService.getDishesToPrepare(100L, 12L)).thenReturn(dishes);
+
+        ResponseEntity<List<Dish>> response = vendorController.getDishesToPrepare(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dishes, response.getBody());
+        assertEquals(dish1, response.getBody().get(0));
+        assertEquals(dish2, response.getBody().get(1));
+    }
+
+    @Test
+    public void testGetDishesToPrepareError() {
+        Mockito.when(this.authenticationService.isVendor(12L)).thenReturn(true);
+        Mockito.when(this.vendorService.getDishesToPrepare(100L, 12L)).thenThrow(RuntimeException.class);
+
+        ResponseEntity<List<Dish>> response = vendorController.getDishesToPrepare(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 
     @Test

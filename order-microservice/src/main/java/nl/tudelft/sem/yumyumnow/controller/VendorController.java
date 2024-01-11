@@ -78,6 +78,24 @@ public class VendorController implements VendorApi {
     }
 
     @Override
+    public ResponseEntity<List<Dish>> getDishesToPrepare(Long orderId, Long vendorId) {
+        if (this.authenticationService.isVendor(vendorId)) {
+            try {
+                List<Dish> dishes = vendorService.getDishesToPrepare(orderId, vendorId);
+                if (dishes != null) {
+                    return new ResponseEntity<>(dishes, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
     public ResponseEntity<List<Vendor>> getAllVendors(String filter) {
         try {
             if (filter == null || filter.isEmpty()) {

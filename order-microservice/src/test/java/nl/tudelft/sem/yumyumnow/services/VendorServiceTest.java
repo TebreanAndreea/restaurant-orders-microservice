@@ -3,6 +3,8 @@ package nl.tudelft.sem.yumyumnow.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -10,6 +12,7 @@ import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.database.TestVendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -17,11 +20,16 @@ import org.junit.jupiter.api.Test;
 public class VendorServiceTest {
     private TestVendorRepository vendorRepository;
     private VendorService vendorService;
+    private OrderService orderService;
 
+    /**
+     * setup before each test.
+     */
     @BeforeEach
     public void setup() {
         this.vendorRepository = new TestVendorRepository();
-        this.vendorService = new VendorService(this.vendorRepository);
+        this.orderService = mock(OrderService.class);
+        this.vendorService = new VendorService(this.vendorRepository, orderService);
     }
 
     @Test
@@ -36,7 +44,6 @@ public class VendorServiceTest {
 
     @Test
     public void testGetVendorById() {
-        Long id = 112L;
         Vendor vendor = new Vendor();
         vendor.setName("Vendor1");
         this.vendorRepository.save(vendor);
@@ -67,6 +74,76 @@ public class VendorServiceTest {
         assertEquals(dishes.size(), dishesRetrive.size());
         assertEquals(dishes.get(0), dishesRetrive.get(0));
         assertEquals(dishes.get(1), dishesRetrive.get(1));
+    }
+
+    @Test
+    public void testGetDishesToPrepareNullOrders() {
+        when(this.orderService.getAllOrdersForVendor(1L)).thenReturn(null);
+        Vendor vendor = new Vendor();
+        Long id = this.vendorRepository.count();
+        vendor.setId(id);
+        this.vendorRepository.save(vendor);
+        assertNull(this.vendorService.getDishesToPrepare(1L, id));
+    }
+
+    @Test
+    public void testGetDishesToPrepareNoOrderFound() {
+        Dish dish1 = new Dish();
+        dish1.setId(1L);
+        Dish dish2 = new Dish();
+        dish2.setId(2L);
+        Dish dish3 = new Dish();
+        dish3.setId(3L);
+        List<Dish> dishes1 = new ArrayList<>();
+        dishes1.add(dish1);
+        dishes1.add(dish2);
+        List<Dish> dishes2 = new ArrayList<>();
+        dishes2.add(dish3);
+        Order order1 = new Order();
+        order1.setOrderId(12L);
+        order1.setDishes(dishes1);
+        Order order2 = new Order();
+        order2.setOrderId(13L);
+        order2.setDishes(dishes2);
+        List<Order> orders = new ArrayList<>();
+        orders.add(order1);
+        orders.add(order2);
+        Vendor vendor = new Vendor();
+        Long id = this.vendorRepository.count();
+        vendor.setId(id);
+        this.vendorRepository.save(vendor);
+        when(this.orderService.getAllOrdersForVendor(id)).thenReturn(orders);
+        assertNull(this.vendorService.getDishesToPrepare(1234L, id));
+    }
+
+    @Test
+    public void testGetDishesToPrepareValid() {
+        Dish dish1 = new Dish();
+        dish1.setId(1L);
+        Dish dish2 = new Dish();
+        dish2.setId(2L);
+        Dish dish3 = new Dish();
+        dish3.setId(3L);
+        List<Dish> dishes1 = new ArrayList<>();
+        dishes1.add(dish1);
+        dishes1.add(dish2);
+        List<Dish> dishes2 = new ArrayList<>();
+        dishes2.add(dish3);
+        Order order1 = new Order();
+        order1.setOrderId(12L);
+        order1.setDishes(dishes1);
+        Order order2 = new Order();
+        order2.setOrderId(13L);
+        order2.setDishes(dishes2);
+        List<Order> orders = new ArrayList<>();
+        orders.add(order1);
+        orders.add(order2);
+        Vendor vendor = new Vendor();
+        Long id = this.vendorRepository.count();
+        vendor.setId(id);
+        this.vendorRepository.save(vendor);
+        when(this.orderService.getAllOrdersForVendor(id)).thenReturn(orders);
+        assertEquals(dishes2, this.vendorService.getDishesToPrepare(13L, id));
     }
 
     @Test
