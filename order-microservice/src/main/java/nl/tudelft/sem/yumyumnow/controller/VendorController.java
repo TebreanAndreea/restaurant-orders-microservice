@@ -114,4 +114,35 @@ public class VendorController implements VendorApi {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Lets a vendor modify a dish from his list.
+     *
+     * @param dishId ID of dish which needs to be updated (required)
+     * @param vendorId ID of vendor that needs to update the dish (required)
+     * @param dish Update a dish (optional)
+     * @return an empty response entity with an appropriate status code.
+     */
+    @Override
+    public ResponseEntity<Void> modifyDishFromVendor(Long dishId, Long vendorId, Dish dish) {
+        try {
+            if (authenticationService.isVendor(vendorId)) {
+                if (dishId == null || dishId <= 0) {
+                    return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                }
+
+                Optional<Dish> existingDish = dishService.modifyDish(dish);
+
+                if (existingDish.isEmpty()) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

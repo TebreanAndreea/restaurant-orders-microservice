@@ -418,4 +418,90 @@ public class VendorControllerTest {
         assertEquals(HttpStatus.NOT_FOUND, vendorsReceived.getStatusCode());
     }
 
+    @Test
+    public void testModifyDishSuccess() {
+        Long dishId = 1L;
+        Long vendorId = 2L;
+        Dish modifiedDish = new Dish().name("fries").price(34.5);
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(dishService.modifyDish(modifiedDish)).thenReturn(Optional.of(modifiedDish));
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, modifiedDish);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        Mockito.verify(authenticationService, Mockito.times(1)).isVendor(vendorId);
+        Mockito.verify(dishService, Mockito.times(1)).modifyDish(modifiedDish);
+    }
+
+    @Test
+    public void testModifyDishUnauthorized() {
+        Long dishId = 1L;
+        Long vendorId = 2L;
+        Dish modifiedDish = new Dish();
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(false);
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, modifiedDish);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+        Mockito.verify(authenticationService, Mockito.times(1)).isVendor(vendorId);
+        Mockito.verify(dishService, Mockito.never()).modifyDish(modifiedDish);
+    }
+
+    @Test
+    public void testModifyDishBadRequest() {
+        Long dishId = -1L;
+        Long vendorId = 2L;
+        Dish modifiedDish = new Dish();
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, modifiedDish);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Mockito.verify(authenticationService, Mockito.times(1)).isVendor(vendorId);
+        Mockito.verify(dishService, Mockito.never()).modifyDish(modifiedDish);
+    }
+
+    @Test
+    public void testModifyDishBadRequestNull() {
+        Long dishId = null;
+        Long vendorId = 2L;
+        Dish modifiedDish = new Dish();
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, modifiedDish);
+
+        assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        Mockito.verify(authenticationService, Mockito.times(1)).isVendor(vendorId);
+        Mockito.verify(dishService, Mockito.never()).modifyDish(modifiedDish);
+    }
+
+    @Test
+    public void testModifyDishNotFound() {
+        Long dishId = 1L;
+        Long vendorId = 2L;
+        Dish modifiedDish = new Dish();
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(dishService.modifyDish(modifiedDish)).thenReturn(Optional.empty());
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, modifiedDish);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        Mockito.verify(authenticationService, Mockito.times(1)).isVendor(vendorId);
+        Mockito.verify(dishService, Mockito.times(1)).modifyDish(modifiedDish);
+    }
+
+    @Test
+    void testModifyDishInternalServerError() {
+        long dishId = 1L;
+        long vendorId = 2L;
+        Dish dish = new Dish();
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(dishService.modifyDish(dish)).thenThrow(new RuntimeException("Something went wrong"));
+
+        ResponseEntity<Void> response = vendorController.modifyDishFromVendor(dishId, vendorId, dish);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
 }
