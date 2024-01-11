@@ -3,24 +3,37 @@ package nl.tudelft.sem.yumyumnow.services;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 @Service
 public class VendorService {
     private final VendorRepository vendorRepository;
+    private final OrderService orderService;
     private final CustomerService customerService;
 
+
+    /**
+     * Creates a new Vendor Service.
+     *
+     * @param repository the DB instance where the Vendors are stored
+     * @param customerService an instance of the user service
+     * @param orderService an instance of the order service
+     */
     @Autowired
-    public VendorService(VendorRepository repository, CustomerService customerService) {
+    public VendorService(VendorRepository repository, CustomerService customerService, OrderService orderService) {
         this.vendorRepository = repository;
         this.customerService = customerService;
+        this.orderService = orderService;
     }
 
     /**
@@ -90,6 +103,29 @@ public class VendorService {
         Vendor vendor = new Vendor();
         vendor.setName(vendorName);
         return this.vendorRepository.save(vendor);
+    }
+
+    /**
+     * Return the dishes from the order with orderId that vendor with vendorId needs to prepare.
+     *
+     * @param orderId The order's id.
+     * @param vendorId The vendor's id.
+     * @return The dishes that needs to be prepared.
+     */
+
+    public List<Dish> getDishesToPrepare(Long orderId, Long vendorId) {
+        List<Order> orders = this.orderService.getAllOrdersForVendor(vendorId);
+        Order order = null;
+        for (Order o : orders) {
+            if (Objects.equals(o.getOrderId(), orderId)) {
+                order = o;
+                break;
+            }
+        }
+        if (order != null) {
+            return order.getDishes();
+        }
+        return null;
     }
 
     /**
