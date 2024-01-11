@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.List;
 import java.util.Optional;
@@ -90,7 +91,8 @@ public class DishServiceTest {
         assertEquals(1, this.dishRepository.getMethodCalls().size());
         assertEquals("save", this.dishRepository.getMethodCalls().get(0));
 
-        Dish retrievedDish = this.dishService.getDishById(savedDish.getId());
+        Optional<Dish> optionalDish = this.dishService.getDishById(savedDish.getId());
+        Dish retrievedDish = optionalDish.get();
         assertEquals(dish.getName(), retrievedDish.getName());
     }
 
@@ -100,7 +102,8 @@ public class DishServiceTest {
         dish.setName("Test Dish");
         Dish savedDish = this.dishService.createNewDish(dish);
 
-        assertThrows(NoSuchElementException.class, () -> this.dishService.getDishById(112L),
-                "No dish exists with id 112");
+        Optional<Dish> retrievedDish = this.dishService.getDishById(112L);
+
+        assertTrue(retrievedDish.isEmpty(), "No dish exists with id 112");
     }
 }

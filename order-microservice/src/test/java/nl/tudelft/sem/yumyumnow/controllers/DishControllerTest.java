@@ -2,7 +2,7 @@ package nl.tudelft.sem.yumyumnow.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.DishController;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.services.DishService;
@@ -25,7 +25,7 @@ public class DishControllerTest {
 
     @Test
     public void testGetDish() {
-        Mockito.when(dishService.getDishById(1L)).thenThrow(new NoSuchElementException());
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.empty());
 
         ResponseEntity<Dish> response = dishController.getDish(1L);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
@@ -36,7 +36,7 @@ public class DishControllerTest {
         Dish dish = new Dish();
         dish.setName("Pizza");
         dish.setId(1L);
-        Mockito.when(dishService.getDishById(1L)).thenReturn(dish);
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(dish));
 
         ResponseEntity<Dish> response = dishController.getDish(1L);
         assertEquals(HttpStatus.OK, response.getStatusCode());

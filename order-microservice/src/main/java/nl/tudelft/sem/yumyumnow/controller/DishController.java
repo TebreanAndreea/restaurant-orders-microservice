@@ -1,6 +1,6 @@
 package nl.tudelft.sem.yumyumnow.controller;
 
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.DishApi;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.services.DishService;
@@ -24,10 +24,12 @@ public class DishController implements DishApi {
      */
     @Override
     public ResponseEntity<Dish> getDish(Long dishId) {
-        try {
-            Dish dish = dishService.getDishById(dishId);
+        Optional<Dish> dishOptional = dishService.getDishById(dishId);
+
+        if (dishOptional.isPresent()) {
+            Dish dish = dishOptional.get();
             return ResponseEntity.ok(dish);
-        } catch (NoSuchElementException e) {
+        } else {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
