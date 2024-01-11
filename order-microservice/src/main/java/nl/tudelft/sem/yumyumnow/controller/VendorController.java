@@ -65,8 +65,8 @@ public class VendorController implements VendorApi {
 
     @Override
     public ResponseEntity<List<Dish>> getVendorDishes(Long vendorId, Long customerId) {
-        if (this.authenticationService.isCustomer(customerId)) {
-            List<Dish> dishes = vendorService.getVendorDishes(vendorId);
+        if (this.authenticationService.isCustomer(customerId) && this.authenticationService.isVendor(vendorId)) {
+            List<Dish> dishes = vendorService.getVendorDishesforCustomer(vendorId, customerId);
             if (dishes != null)  {
                 return new ResponseEntity<>(dishes, HttpStatus.OK);
             } else {

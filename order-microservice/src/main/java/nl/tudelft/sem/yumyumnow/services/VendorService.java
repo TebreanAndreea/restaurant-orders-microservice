@@ -1,9 +1,11 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
@@ -13,10 +15,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class VendorService {
     private final VendorRepository vendorRepository;
+    private final CustomerService customerService;
 
     @Autowired
-    public VendorService(VendorRepository repository) {
+    public VendorService(VendorRepository repository, CustomerService customerService) {
         this.vendorRepository = repository;
+        this.customerService = customerService;
     }
 
     /**
@@ -40,6 +44,38 @@ public class VendorService {
         Optional<Vendor> vendorOptional = this.vendorRepository.findById(vendorId);
         if (vendorOptional.isPresent()) {
             return vendorOptional.get().getDishes();
+        }
+        return null;
+    }
+
+    /**
+     * Returns a restaurant's list of dishes which a customer is not allergic to.
+     *
+     * @param vendorId The id of the vendor.
+     * @param customerId The id of the customer.
+     * @return Restaurant's dishes which contains none of the customer's allergens.
+     */
+    public List<Dish> getVendorDishesforCustomer(Long vendorId, Long customerId) {
+        Optional<Vendor> vendorOptional = this.vendorRepository.findById(vendorId);
+        Customer customer = this.customerService.getCustomer(customerId);
+        if (vendorOptional.isPresent() && customer != null) {
+            Vendor vendor = vendorOptional.get();
+            List<Dish> vendorDish = vendor.getDishes();
+            List<String> allergens = customer.getAllergens();
+            List<Dish> dishesWithoutAllergens = new ArrayList<>();
+            for (Dish dish : vendorDish) {
+                boolean hasAllergens = false;
+                for (String allergen : dish.getAllergens()) {
+                    if (allergens.contains(allergen)) {
+                        hasAllergens = true;
+                        break;
+                    }
+                }
+                if (!hasAllergens) {
+                    dishesWithoutAllergens.add(dish);
+                }
+            }
+            return dishesWithoutAllergens;
         }
         return null;
     }
