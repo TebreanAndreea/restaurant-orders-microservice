@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import java.util.List;
+import nl.tudelft.sem.yumyumnow.database.RatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -9,10 +10,23 @@ import org.springframework.stereotype.Service;
 public class AnalyticsService {
 
     private VendorService vendorService;
+    private RatingRepository ratingRepository;
+    private OrderService orderService;
 
+    /**
+     * Creates a new AnalyticsService.
+     *
+     * @param vendorService an instance of the vendor service
+     * @param ratingRepository the DB instance where the ratings are stored
+     * @param orderService an instance of the order service
+     */
     @Autowired
-    public AnalyticsService(VendorService vendorService) {
+    public AnalyticsService(VendorService vendorService,
+                            RatingRepository ratingRepository,
+                            OrderService orderService) {
         this.vendorService = vendorService;
+        this.ratingRepository = ratingRepository;
+        this.orderService = orderService;
     }
 
     /**
@@ -30,6 +44,27 @@ public class AnalyticsService {
                 total += dish.getPrice();
             }
             return total / vendorDishes.size();
+        }
+
+        return null;
+    }
+
+    /**
+     * Calculates the average rating of a vendor's orders.
+     *
+     * @param vendorId the id of the vendor
+     * @return the average rating
+     */
+    public Double getAverageVendorRating(Long vendorId) {
+        List<Long> ratingIds = orderService.getAllRatingsForVendor(vendorId);
+
+        if (ratingIds != null && !ratingIds.isEmpty()) {
+            double total = 0;
+            for (Long id : ratingIds) {
+                total += ratingRepository.findById(id).get().getGrade();
+            }
+
+            return total / ratingIds.size();
         }
 
         return null;

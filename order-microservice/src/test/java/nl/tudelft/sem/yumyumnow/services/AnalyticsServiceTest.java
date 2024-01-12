@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import nl.tudelft.sem.yumyumnow.database.RatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,8 @@ public class AnalyticsServiceTest {
 
     private AnalyticsService analyticsService;
     private VendorService vendorService;
+    private RatingRepository ratingRepository;
+    private OrderService orderService;
 
     /**
      * Setup of the mocked objects before each test.
@@ -21,7 +24,9 @@ public class AnalyticsServiceTest {
     @BeforeEach
     public void setup() {
         this.vendorService = Mockito.mock(VendorService.class);
-        this.analyticsService = new AnalyticsService(vendorService);
+        this.ratingRepository = Mockito.mock(RatingRepository.class);
+        this.orderService = Mockito.mock(OrderService.class);
+        this.analyticsService = new AnalyticsService(vendorService, ratingRepository, orderService);
     }
 
     @Test
