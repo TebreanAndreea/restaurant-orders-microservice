@@ -48,12 +48,27 @@ public class TestRatingRepository implements RatingRepository {
     }
 
     @Override
-    public List<Rating> findAllById(Iterable<Long> longs) {
+    public Page<Rating> findAll(Pageable pageable) {
         return null;
     }
 
     @Override
-    public Page<Rating> findAll(Pageable pageable) {
+    public <S extends Rating> List<S> findAll(Example<S> example) {
+        return null;
+    }
+
+    @Override
+    public <S extends Rating> List<S> findAll(Example<S> example, Sort sort) {
+        return null;
+    }
+
+    @Override
+    public <S extends Rating> Page<S> findAll(Example<S> example, Pageable pageable) {
+        return null;
+    }
+
+    @Override
+    public List<Rating> findAllById(Iterable<Long> longs) {
         return null;
     }
 
@@ -133,21 +148,6 @@ public class TestRatingRepository implements RatingRepository {
     @Override
     public <S extends Rating> Optional<S> findOne(Example<S> example) {
         return Optional.empty();
-    }
-
-    @Override
-    public <S extends Rating> List<S> findAll(Example<S> example) {
-        return null;
-    }
-
-    @Override
-    public <S extends Rating> List<S> findAll(Example<S> example, Sort sort) {
-        return null;
-    }
-
-    @Override
-    public <S extends Rating> Page<S> findAll(Example<S> example, Pageable pageable) {
-        return null;
     }
 
     @Override
