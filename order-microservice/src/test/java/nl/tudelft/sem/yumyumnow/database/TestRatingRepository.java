@@ -48,12 +48,12 @@ public class TestRatingRepository implements RatingRepository {
     }
 
     @Override
-    public Page<Rating> findAll(Pageable pageable) {
+    public List<Rating> findAllById(Iterable<Long> longs) {
         return null;
     }
 
     @Override
-    public List<Rating> findAllById(Iterable<Long> longs) {
+    public Page<Rating> findAll(Pageable pageable) {
         return null;
     }
 
