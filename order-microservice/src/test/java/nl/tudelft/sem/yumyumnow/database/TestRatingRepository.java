@@ -1,21 +1,20 @@
 package nl.tudelft.sem.yumyumnow.database;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import org.springframework.data.domain.Example;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-
-public class TestRatingRepository implements RatingRepository{
+public class TestRatingRepository implements RatingRepository {
 
     private final List<Rating> ratings;
     private final List<String> methodCalls;
 
-    public TestRatingRepository(){
+    public TestRatingRepository() {
         this.ratings = new ArrayList<>();
         this.methodCalls = new ArrayList<>();
     }
@@ -65,7 +64,7 @@ public class TestRatingRepository implements RatingRepository{
     }
 
     @Override
-    public void deleteById(Long aLong) {
+    public void deleteById(Long id) {
 
     }
 
@@ -108,7 +107,7 @@ public class TestRatingRepository implements RatingRepository{
     }
 
     @Override
-    public boolean existsById(Long aLong) {
+    public boolean existsById(Long id) {
         return false;
     }
 
@@ -133,7 +132,7 @@ public class TestRatingRepository implements RatingRepository{
     }
 
     @Override
-    public Rating getOne(Long aLong) {
+    public Rating getOne(Long id) {
         return null;
     }
 
