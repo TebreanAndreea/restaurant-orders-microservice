@@ -1,5 +1,7 @@
 package nl.tudelft.sem.yumyumnow.controllers;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.AnalyticsController;
 import nl.tudelft.sem.yumyumnow.model.Order;
@@ -13,14 +15,15 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-
 public class AnalyticsControllerTest {
 
     private AnalyticsService analyticsService;
     private OrderService orderService;
     private AnalyticsController analyticsController;
 
+    /**
+     * Setup of the mocked objects before each test.
+     */
     @BeforeEach
     public void setup() {
         this.analyticsService = Mockito.mock(AnalyticsService.class);

@@ -54,13 +54,13 @@ public class TestRatingRepository implements RatingRepository {
     }
 
     @Override
-    public List<Rating> findAllById(Iterable<Long> longs) {
-        return null;
+    public long count() {
+        return 0;
     }
 
     @Override
-    public long count() {
-        return 0;
+    public List<Rating> findAllById(Iterable<Long> longs) {
+        return null;
     }
 
     @Override
