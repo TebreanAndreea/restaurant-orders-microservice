@@ -5,28 +5,73 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.RatingRepository;
+import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Rating;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 
+
 public class AnalyticsServiceTest {
 
-    private AnalyticsService analyticsService;
-    private VendorService vendorService;
+    private TestRatingRepository testRatingRepository;
     private RatingRepository ratingRepository;
+    private AnalyticsService analyticsService;
+    private AnalyticsService mockedAnalyticsService;
+    private VendorService vendorService;
     private OrderService orderService;
 
     /**
-     * Setup of the mocked objects before each test.
+     * Setup of the services needed for testing.
      */
     @BeforeEach
     public void setup() {
         this.vendorService = Mockito.mock(VendorService.class);
-        this.ratingRepository = Mockito.mock(RatingRepository.class);
+        this.ratingRepository = new TestRatingRepository();
         this.orderService = Mockito.mock(OrderService.class);
-        this.analyticsService = new AnalyticsService(vendorService, ratingRepository, orderService);
+        this.testRatingRepository = new TestRatingRepository();
+        this.analyticsService = new AnalyticsService(vendorService, testRatingRepository, orderService);
+        this.mockedAnalyticsService = new AnalyticsService(vendorService, ratingRepository, orderService);
+    }
+
+    @Test
+    public void testEmptyRepo() {
+        Long id = 420L;
+        assertEquals(this.analyticsService.getRatingById(id), Optional.empty());
+
+        assertEquals(1, this.testRatingRepository.getMethodCalls().size());
+        assertEquals("findById", this.testRatingRepository.getMethodCalls().get(0));
+    }
+
+    @Test
+    public void testAddDish() {
+        Rating rating = new Rating();
+        rating.setComment("The pizza was great!");
+        Rating savedRating = this.analyticsService.createNewRating(rating);
+
+        assertEquals(1, this.testRatingRepository.getMethodCalls().size());
+        assertEquals("save", this.testRatingRepository.getMethodCalls().get(0));
+
+        Optional<Rating> retrievedRating = this.analyticsService.getRatingById(savedRating.getId());
+        assertEquals(rating.getComment(), retrievedRating.get().getComment());
+    }
+
+    @Test
+    public void testGetRatingById() {
+        Rating rating = new Rating();
+        rating.setComment("The pizza was great!");
+        Rating savedRating = this.analyticsService.createNewRating(rating);
+
+        assertEquals(1, this.testRatingRepository.getMethodCalls().size());
+        assertEquals("save", this.testRatingRepository.getMethodCalls().get(0));
+
+        Optional<Rating> retrievedRating = this.analyticsService.getRatingById(savedRating.getId());
+        assertEquals(2, this.testRatingRepository.getMethodCalls().size());
+        assertEquals("findById", this.testRatingRepository.getMethodCalls().get(1));
+        assertEquals(rating.getComment(), retrievedRating.get().getComment());
     }
 
     @Test
@@ -40,7 +85,7 @@ public class AnalyticsServiceTest {
 
         Mockito.when(vendorService.getVendorDishes(vendorId)).thenReturn(dishes);
 
-        assertEquals(average, analyticsService.getAverageVendorPrice(vendorId));
+        assertEquals(average, mockedAnalyticsService.getAverageVendorPrice(vendorId));
     }
 
     @Test
@@ -51,7 +96,7 @@ public class AnalyticsServiceTest {
 
         Mockito.when(vendorService.getVendorDishes(vendorId)).thenReturn(dishes);
 
-        assertEquals(23.4, analyticsService.getAverageVendorPrice(vendorId));
+        assertEquals(23.4, mockedAnalyticsService.getAverageVendorPrice(vendorId));
     }
 
     @Test
@@ -60,7 +105,7 @@ public class AnalyticsServiceTest {
 
         Mockito.when(vendorService.getVendorDishes(vendorId)).thenReturn(Collections.emptyList());
 
-        assertEquals(null, analyticsService.getAverageVendorPrice(vendorId));
+        assertEquals(null, mockedAnalyticsService.getAverageVendorPrice(vendorId));
     }
-
 }
+

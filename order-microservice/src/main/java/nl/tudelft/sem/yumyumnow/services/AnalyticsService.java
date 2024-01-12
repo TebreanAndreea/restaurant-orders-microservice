@@ -1,16 +1,18 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import java.util.List;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.RatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Rating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class AnalyticsService {
 
+    private final RatingRepository ratingRepository;
     private VendorService vendorService;
-    private RatingRepository ratingRepository;
     private OrderService orderService;
 
     /**
@@ -27,6 +29,14 @@ public class AnalyticsService {
         this.vendorService = vendorService;
         this.ratingRepository = ratingRepository;
         this.orderService = orderService;
+    }
+
+    public Optional<Rating> getRatingById(Long ratingId) {
+        return this.ratingRepository.findById(ratingId);
+    }
+
+    public Rating createNewRating(Rating rating) {
+        return this.ratingRepository.save(rating);
     }
 
     /**
@@ -61,7 +71,7 @@ public class AnalyticsService {
         if (ratingIds != null && !ratingIds.isEmpty()) {
             double total = 0;
             for (Long id : ratingIds) {
-                total += ratingRepository.findById(id).get().getGrade();
+                total += getRatingById(id).get().getGrade();
             }
 
             return total / ratingIds.size();
@@ -69,4 +79,5 @@ public class AnalyticsService {
 
         return null;
     }
+
 }
