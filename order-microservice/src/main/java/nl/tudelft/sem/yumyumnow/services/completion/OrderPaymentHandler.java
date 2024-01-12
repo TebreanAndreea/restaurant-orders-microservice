@@ -43,6 +43,6 @@ public class OrderPaymentHandler extends OrderCompletionHandler {
      * @return true if the payment was successful.
      */
     public boolean processPayment(Long customerId, Double amount) {
-        return customerId != null && amount > 0;
+        return customerId != null && amount != null && amount > 0;
     }
 }

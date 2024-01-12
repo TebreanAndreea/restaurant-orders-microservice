@@ -29,9 +29,10 @@ public class DeliveryStatus {
         String temp = status.getValue();
         int length = temp.length();
         for (int i = 0; i < length; i++) {
+            String character = temp.substring(i, i + 1);
             if (i == 0 || temp.charAt(i - 1) == ' ' || temp.charAt(i - 1) == '-') {
                 temp = temp.substring(0, i)
-                        + temp.substring(i, i + 1).toUpperCase()
+                        + character.toUpperCase()
                         + temp.substring(i + 1, length);
             }
         }

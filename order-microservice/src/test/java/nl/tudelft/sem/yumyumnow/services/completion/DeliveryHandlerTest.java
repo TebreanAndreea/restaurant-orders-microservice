@@ -19,7 +19,8 @@ public class DeliveryHandlerTest {
     private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
-            return Order.StatusEnum.DELIVERED;
+            return order.getStatus() == Order.StatusEnum.ON_TRANSIT ? Order.StatusEnum.DELIVERED :
+                    Order.StatusEnum.REJECTED;
         }
     };
 
