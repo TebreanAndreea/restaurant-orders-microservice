@@ -37,17 +37,6 @@ public class TestRatingRepository implements RatingRepository {
         this.methodCalls.add(method);
     }
 
-
-    @Override
-    public List<Rating> findAll() {
-        return null;
-    }
-
-    @Override
-    public List<Rating> findAll(Sort sort) {
-        return null;
-    }
-
     @Override
     public Page<Rating> findAll(Pageable pageable) {
         return null;
@@ -56,6 +45,16 @@ public class TestRatingRepository implements RatingRepository {
     @Override
     public long count() {
         return 0;
+    }
+    
+    @Override
+    public List<Rating> findAll() {
+        return null;
+    }
+
+    @Override
+    public List<Rating> findAll(Sort sort) {
+        return null;
     }
 
     @Override
