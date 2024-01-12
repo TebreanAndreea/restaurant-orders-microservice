@@ -1139,10 +1139,10 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                $ref: '#/components/schemas/Rating'
             application/xml:
               schema:
-                type: integer
+                $ref: '#/components/schemas/Rating'
         '404':
           description: Order id not found
         '500':
