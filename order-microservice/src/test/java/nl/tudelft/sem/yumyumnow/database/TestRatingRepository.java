@@ -38,17 +38,17 @@ public class TestRatingRepository implements RatingRepository {
     }
 
     @Override
-    public Page<Rating> findAll(Pageable pageable) {
-        return null;
-    }
-    
-    @Override
     public List<Rating> findAll() {
         return null;
     }
 
     @Override
     public List<Rating> findAll(Sort sort) {
+        return null;
+    }
+
+    @Override
+    public Page<Rating> findAll(Pageable pageable) {
         return null;
     }
 
