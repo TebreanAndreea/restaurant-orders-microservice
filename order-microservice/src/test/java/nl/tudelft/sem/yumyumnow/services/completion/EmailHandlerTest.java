@@ -17,7 +17,8 @@ public class EmailHandlerTest {
     private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
-            return Order.StatusEnum.ON_TRANSIT;
+            return order.getStatus() == Order.StatusEnum.PREPARING ? Order.StatusEnum.ON_TRANSIT :
+                    Order.StatusEnum.REJECTED;
         }
     };
 
