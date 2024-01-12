@@ -237,65 +237,67 @@ public class OrderServiceTest {
     }
 
     /**
-     * Tests the addDishesToOrder method when the orderId is found, but there were no previous dishes.
+     * Tests the addDishToOrder method when the orderId is found, but there were no previous dishes.
      */
     @Test
-    public void addDishesToOrderNoPreviousDishes() {
+    public void addDishToOrderNoPreviousDishes() {
         Order order = this.orderService.createNewOrder(1L, 14L);
         Dish d1 = new Dish();
+        d1.setName("Pizza");
+
+        final List<Dish> allDishes = this.orderService.addDishToOrder(order.getOrderId(), d1);
+        Order modifiedOrder = this.orderService.getOrderById(order.getOrderId());
+        assertFalse(modifiedOrder.getDishes().isEmpty());
+        assertEquals(4, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        assertTrue(modifiedOrder.getDishes().contains(d1));
+        assertEquals(modifiedOrder.getDishes().size(), 1);
+    }
+
+    /**
+     * Tests the addDishToOrder method when the orderId is found.
+     */
+    @Test
+    public void addDishToOrder() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
+
         Dish d2 = new Dish();
+        d2.setName("Pasta");
+
+        Order order = this.orderService.createNewOrder(1L, 14L);
+
         List<Dish> dishes = new ArrayList<>();
         dishes.add(d1);
         dishes.add(d2);
 
-        final List<Dish> allDishes = this.orderService.addDishesToOrder(order.getOrderId(), dishes);
+        List<Dish> allDishes = this.orderService.addDishToOrder(order.getOrderId(), d1);
         Order modifiedOrder = this.orderService.getOrderById(order.getOrderId());
-        assertTrue(!modifiedOrder.getDishes().isEmpty());
+        assertFalse(allDishes.isEmpty());
         assertEquals(4, this.orderRepository.getMethodCalls().size());
+        assertTrue(modifiedOrder.getDishes().contains(d1));
+        assertEquals(modifiedOrder.getDishes().size(), 1);
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+
+        allDishes = this.orderService.addDishToOrder(order.getOrderId(), d2);
+        modifiedOrder = this.orderService.getOrderById(order.getOrderId());
+        assertEquals(7, this.orderRepository.getMethodCalls().size());
         assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
         assertEquals(dishes, modifiedOrder.getDishes());
         assertEquals(modifiedOrder.getDishes().size(), 2);
-        assertEquals(dishes, allDishes);
     }
 
     /**
-     * Tests the addDishesToOrder method when the orderId is found.
+     * Tests the addDishToOrder method when the orderId is not found.
      */
     @Test
-    public void addDishesToOrder() {
-        final Dish d1 = new Dish();
-        final Dish d2 = new Dish();
-        Dish d3 = new Dish();
-        Dish d4 = new Dish();
-        Order order = this.orderService.createNewOrder(1L, 14L);
-        order.addDishesItem(d3);
-        order.addDishesItem(d4);
-        this.orderService.modifyOrderAdmin(order.getOrderId(), order);
+    public void addDishToOrderNotFound() {
+        Dish d1 = new Dish();
+        d1.setName("Pizza");
 
-
-        List<Dish> dishes = new ArrayList<>();
-        dishes.add(d1);
-        dishes.add(d2);
-
-        List<Dish> allDishes = this.orderService.addDishesToOrder(order.getOrderId(), dishes);
-        Order modifiedOrder = this.orderService.getOrderById(order.getOrderId());
-        assertTrue(!modifiedOrder.getDishes().isEmpty());
-        assertEquals(6, this.orderRepository.getMethodCalls().size());
-        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
-        assertEquals(dishes, modifiedOrder.getDishes());
-        assertEquals(modifiedOrder.getDishes().size(), 4);
-    }
-
-    /**
-     * Tests the addDishesToOrder method when the orderId is not found.
-     */
-    @Test
-    public void addDishesToOrderNotFound() {
-        Order order = this.orderService.createNewOrder(1L, 14L);
-
-        List<Dish> modifiedOrder = this.orderService.addDishesToOrder(2L, new ArrayList<Dish>());
-        assertEquals(2, this.orderRepository.getMethodCalls().size());
-        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
+        List<Dish> modifiedOrder = this.orderService.addDishToOrder(2L, d1);
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("findById", this.orderRepository.getMethodCalls().get(0));
         assertNull(modifiedOrder);
     }
 
@@ -368,5 +370,42 @@ public class OrderServiceTest {
             this.orderService.updateOrder(15L, List.of(dish), newLoc, status, time);
         }, "No order exists with id 15");
 
+    }
+
+    @Test
+    public void testUserNotAssociatedWithOrder() {
+        this.orderService.createNewOrder(11L, 13L).setOrderId(20L);
+        assertFalse(this.orderService.isUserAssociatedWithOrder(20L, 12L));
+    }
+
+    @Test
+    public void testUserAssociatedWithOrder() {
+        this.orderService.createNewOrder(11L, 13L).setOrderId(20L);
+        assertTrue(this.orderService.isUserAssociatedWithOrder(20L, 11L));
+        assertTrue(this.orderService.isUserAssociatedWithOrder(20L, 13L));
+    }
+
+    @Test
+    public void testNonExistentOrder() {
+        assertFalse(orderService.isUserAssociatedWithOrder(9L, 15L));
+    }
+
+    /**
+     * Tests if the method deleteOrder deletes the order.
+     */
+    @Test
+    public void testDeleteOrder() {
+        Order order1 = this.orderService.createNewOrder(1L, 14L);
+        Order order2 = this.orderService.createNewOrder(2L, 15L);
+
+
+        Boolean deleted1 = this.orderService.deleteOrder(order1.getOrderId());
+        Boolean deleted2 = this.orderService.deleteOrder(38290L);
+        assertEquals(5, this.orderRepository.getMethodCalls().size());
+        List<Order> foundOrders = this.orderService.getAllOrders();
+
+        assertEquals(deleted1, true);
+        assertEquals(deleted2, false);
+        assertEquals(foundOrders.size(), 1);
     }
 }

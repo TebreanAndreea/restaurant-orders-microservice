@@ -188,6 +188,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - name: vendorId
           in: path
           description: ID of vendor that needs to prepare the dishes
@@ -562,6 +563,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - name: userId
           in: path
           description: ID of user who made the order
@@ -904,7 +906,7 @@ paths:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/Dish'
+                  $ref: '#/components/schemas/Order'
         '404':
           description: Vendor id not found
         '500':
@@ -924,6 +926,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
           description: Dish successfully retrieved
@@ -1315,6 +1318,9 @@ components:
           example: "Today at 19:00"
         location:
           $ref: '#/components/schemas/Location'
+        specialRequirenments:
+          type: string
+          example: "No french fries with my burger"
         rating_id:
           type: integer
           format: int64

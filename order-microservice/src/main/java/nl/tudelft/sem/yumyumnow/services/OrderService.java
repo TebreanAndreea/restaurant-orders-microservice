@@ -151,21 +151,21 @@ public class OrderService {
     }
 
     /**
-     * Add multiple dishes to order.
+     * Add dish to order.
      *
      * @param orderId The id of the order we want to add dishes to.
-     * @param dishes The list of dishes that will be added to the order.
+     * @param dish The list of dishes that will be added to the order.
      * @return The list of dishes in the order after adding them.
      */
-    public List<Dish> addDishesToOrder(Long orderId, List<Dish> dishes) {
+    public List<Dish> addDishToOrder(Long orderId, Dish dish) {
         Optional<Order> modifiedOrderOptional = this.orderRepository.findById(orderId);
-        List<Dish> allDishes = dishes;
         if (modifiedOrderOptional.isPresent()) {
             Order modifiedOrder = modifiedOrderOptional.get();
-            List<Dish> allDishesInTheOrder = modifiedOrder.getDishes();
-            if (allDishesInTheOrder != null) {
-                allDishes.addAll(allDishesInTheOrder);
+            List<Dish> allDishes = modifiedOrder.getDishes();
+            if (allDishes == null) {
+                allDishes = new ArrayList<>();
             }
+            allDishes.add(dish);
             modifiedOrder.setDishes(allDishes);
             this.orderRepository.save(modifiedOrder);
             return allDishes;
@@ -206,5 +206,38 @@ public class OrderService {
                 && (status == null || Objects.equals(saved.getStatus(), status))
                 && (time == null || Objects.equals(saved.getTime(), time))
                 && (dishes == null || Objects.equals(dishes, saved.getDishes()));
+    }
+
+    /**
+     * Check if a user is the vendor or the customer of a specific order.
+     *
+     * @param orderId the id of the order.
+     * @param userId the id of the user.
+     * @return true if the user is a vendor or customer for the order, false otherwise.
+     */
+    public boolean isUserAssociatedWithOrder(Long orderId, Long userId) {
+        try {
+            Order order = getOrderById(orderId);
+            return order.getCustomerId().equals(userId) || order.getVendorId().equals(userId);
+        } catch (NoSuchElementException ex) {
+            return false;
+        }
+    }
+
+    /**
+     * Deletes an order by id.
+     *
+     * @param orderId the id of the order to delete
+     * @return A boolean specifying whether the order is deleted or not
+     */
+    public Boolean deleteOrder(Long orderId) {
+        Optional<Order> optionalOrder = this.orderRepository.findById(orderId);
+        if (optionalOrder.isPresent()) {
+            Order orderToDelete = optionalOrder.get();
+            this.orderRepository.delete(orderToDelete);
+            return true;
+        } else {
+            return false;
+        }
     }
 }

@@ -1,11 +1,11 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.DishRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 
 @Service
 public class DishService {
@@ -29,9 +29,8 @@ public class DishService {
      * @return the Dish object found for the given ID
      * @throws NoSuchElementException if there is no Dish object for the given ID in the DB
      */
-    public Dish getDishById(Long dishId) {
-        return this.dishRepository.findById(dishId).orElseThrow(
-                () -> new NoSuchElementException("No dish exists with id " + dishId));
+    public Optional<Dish> getDishById(Long dishId) {
+        return dishRepository.findById(dishId);
     }
 
     /**
@@ -42,6 +41,25 @@ public class DishService {
      */
     public Dish createNewDish(Dish dish) {
         return this.dishRepository.save(dish);
+    }
+
+    /**
+     * Modifies an existing dish.
+     *
+     * @param dish the new dish
+     * @return the updated dish
+     */
+    public Optional<Dish> modifyDish(Dish dish) {
+        Long dishId = dish.getId();
+        boolean exists = dishRepository.existsById(dishId);
+
+        if (exists) {
+            Dish saved = dishRepository.save(dish);
+
+            return Optional.of(saved);
+        } else {
+            return Optional.empty();
+        }
     }
 
 }
