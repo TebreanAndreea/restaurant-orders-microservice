@@ -41,11 +41,6 @@ public class TestRatingRepository implements RatingRepository {
     public Page<Rating> findAll(Pageable pageable) {
         return null;
     }
-
-    @Override
-    public long count() {
-        return 0;
-    }
     
     @Override
     public List<Rating> findAll() {
@@ -157,6 +152,11 @@ public class TestRatingRepository implements RatingRepository {
 
     @Override
     public <S extends Rating> long count(Example<S> example) {
+        return 0;
+    }
+
+    @Override
+    public long count() {
         return 0;
     }
 
