@@ -1,5 +1,6 @@
 package nl.tudelft.sem.yumyumnow.controllers;
 
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.AnalyticsController;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
@@ -11,7 +12,6 @@ import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
