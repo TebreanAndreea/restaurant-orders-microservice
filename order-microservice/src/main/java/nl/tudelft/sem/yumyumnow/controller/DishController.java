@@ -33,4 +33,30 @@ public class DishController implements DishApi {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
     }
+
+    /**
+     * Updates a Dish object.
+     *
+     * @param dishId ID of the Dish to be updated (required)
+     * @param dish the new Dish object
+     * @return the new Dish object, stored in the DB
+     */
+    @Override
+    public ResponseEntity<Dish> updateDish(Long dishId, Dish dish) {
+        Optional<Dish> dishOptional = dishService.getDishById(dishId);
+        try {
+            if (dishOptional.isPresent()) {
+                Optional<Dish> updated = this.dishService.modifyDish(dish);
+                if (updated.isPresent()) {
+                    return new ResponseEntity<>(HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }
