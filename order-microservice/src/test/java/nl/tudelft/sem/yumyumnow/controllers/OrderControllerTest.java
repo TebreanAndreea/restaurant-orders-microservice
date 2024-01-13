@@ -560,7 +560,8 @@ public class OrderControllerTest {
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
                 .removeDishFromOrder(200L, 12L, d).getStatusCode());
     }
-
+    
+    @Test
     public void testSetOrderRequirements() {
         Order order = new Order();
         order.setOrderId(10L);
