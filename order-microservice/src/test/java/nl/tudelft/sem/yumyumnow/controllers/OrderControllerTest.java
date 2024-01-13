@@ -9,6 +9,8 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
+
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
@@ -20,6 +22,7 @@ import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -520,5 +523,89 @@ public class OrderControllerTest {
 
         ResponseEntity<Void> statusCode = orderController.deleteOrder(2L, 100L);
         assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    public void testSetOrderRequirements() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.of(modifiedOrder));
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsUnauthorized1() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsUnauthorized2() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Mockito.when(authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 100L)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsOrderNotFound() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsServerError() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

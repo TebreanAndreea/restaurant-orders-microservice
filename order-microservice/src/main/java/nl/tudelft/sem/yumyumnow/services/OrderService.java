@@ -240,4 +240,24 @@ public class OrderService {
             return false;
         }
     }
+
+
+    /**
+     * Modifies an existing order.
+     *
+     * @param order the modified order
+     * @return the updated order, if applicable
+     */
+    public Optional<Order> modifyOrderRequirements(Order order) {
+        Long orderId = order.getOrderId();
+        boolean exists = orderRepository.existsById(orderId);
+
+        if (exists) {
+            Order saved = orderRepository.save(order);
+            return Optional.of(saved);
+        } else {
+            return Optional.empty();
+        }
+    }
+
 }
