@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.VendorApi;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
@@ -92,6 +93,18 @@ public class VendorController implements VendorApi {
             }
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Vendor> getVendor(Long vendorId) {
+        try {
+            Vendor vendor = vendorService.getVendorById(vendorId);
+            return ResponseEntity.ok(vendor);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
