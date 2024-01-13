@@ -1,9 +1,12 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.RatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -75,6 +78,41 @@ public class AnalyticsService {
             }
 
             return total / ratingIds.size();
+        }
+
+        return null;
+    }
+
+    /**
+     * Get the popular dish for a specific vendor.
+     *
+     * @param vendorId the id of the vendor
+     * @return the popular dish if it exists, null otherwise
+     */
+    public Dish getPopularDish(Long vendorId) {
+        List<Order> vendorOrders = orderService.getAllOrdersForVendor(vendorId);
+
+        if (vendorOrders != null && !vendorOrders.isEmpty()) {
+            Map<Dish, Integer> dishCount = new HashMap<>();
+
+            for (Order order : vendorOrders) {
+                List<Dish> orderDishes = order.getDishes();
+                for (Dish dish : orderDishes) {
+                    dishCount.put(dish, dishCount.getOrDefault(dish, 0) + 1);
+                }
+            }
+
+            Dish popular = null;
+            int maxi = 0;
+
+            for (Map.Entry<Dish, Integer> entry : dishCount.entrySet()) {
+                if (entry.getValue() > maxi) {
+                    maxi = entry.getValue();
+                    popular = entry.getKey();
+                }
+            }
+
+            return popular;
         }
 
         return null;

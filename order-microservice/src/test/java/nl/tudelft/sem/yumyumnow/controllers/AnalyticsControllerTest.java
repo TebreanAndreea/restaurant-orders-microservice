@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.AnalyticsController;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import nl.tudelft.sem.yumyumnow.services.AnalyticsService;
@@ -162,5 +163,60 @@ public class AnalyticsControllerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
+
+    @Test
+    void getPopularDish() {
+        Long vendorId = 1L;
+
+        Dish dish = new Dish().name("fries").id(12L);
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.getPopularDish(vendorId)).thenReturn(dish);
+
+        ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(dish, response.getBody());
+
+    }
+
+    @Test
+    void getPopularDishUnauthorized() {
+        Long vendorId = 1L;
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(false);
+
+        ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+
+    }
+
+    @Test
+    void getPopularDishNotFound() {
+        Long vendorId = 1L;
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.getPopularDish(vendorId)).thenReturn(null);
+
+        ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+
+    }
+
+    @Test
+    void getPopularDishInternalServerError() {
+        Long vendorId = 1L;
+
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.getPopularDish(vendorId)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+
+    }
+
 }
 

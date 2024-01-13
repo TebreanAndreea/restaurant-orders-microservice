@@ -3,6 +3,7 @@ package nl.tudelft.sem.yumyumnow.controller;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.AnalyticsApi;
+import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import nl.tudelft.sem.yumyumnow.services.AnalyticsService;
@@ -93,6 +94,25 @@ public class AnalyticsController implements AnalyticsApi {
                     return ResponseEntity.ok(averageRating);
                 } else {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Dish> getPopularDish(Long vendorId) {
+        if (authenticationService.isVendor(vendorId)) {
+            try {
+                Dish popular = analyticsService.getPopularDish(vendorId);
+
+                if (popular == null) {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                } else {
+                    return ResponseEntity.ok(popular);
                 }
             } catch (Exception e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);

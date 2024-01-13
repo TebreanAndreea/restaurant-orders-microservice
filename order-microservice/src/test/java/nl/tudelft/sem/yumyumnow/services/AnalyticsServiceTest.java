@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -8,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -144,6 +146,60 @@ public class AnalyticsServiceTest {
         Mockito.when(orderService.getAllRatingsForVendor(vendorId)).thenReturn(Collections.emptyList());
 
         assertEquals(null, analyticsService.getAverageVendorRating(vendorId));
+    }
+
+    @Test
+    void getPopularDish() {
+        Long vendorId = 1L;
+
+        Dish dish1 = new Dish().id(1L).name("fries");
+        Dish dish2 = new Dish().id(2L).name("burger");
+
+        Order order1 = new Order().orderId(11L).dishes(List.of(dish1, dish2));
+        Order order2 = new Order().orderId(11L).dishes(Collections.singletonList(dish1));
+        List<Order> orders = List.of(order1, order2);
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(orders);
+
+        Dish popular = analyticsService.getPopularDish(vendorId);
+
+        assertNotNull(popular);
+        assertEquals(dish1.getName(), popular.getName());
+    }
+
+    @Test
+    void getPopularDishMoreDishes() {
+        Long vendorId = 1L;
+
+        Dish dish1 = new Dish().id(1L).name("fries");
+        Dish dish2 = new Dish().id(2L).name("burger");
+        Dish dish4 = new Dish().id(2L).name("donut");
+        Dish dish5 = new Dish().id(2L).name("crepes");
+
+        Order order1 = new Order().orderId(11L).dishes(List.of(dish1, dish2));
+        Order order2 = new Order().orderId(11L).dishes(Collections.singletonList(dish1));
+        Order order3 = new Order().orderId(11L).dishes(List.of(dish4, dish5));
+        Order order4 = new Order().orderId(11L).dishes(List.of(dish4, dish4));
+        List<Order> orders = List.of(order1, order2, order3, order4);
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(orders);
+
+        Dish popular = analyticsService.getPopularDish(vendorId);
+
+        assertNotNull(popular);
+        assertEquals(dish4.getName(), popular.getName());
+    }
+
+    @Test
+    void getPopularDishNonExistent() {
+        Long vendorId = 1L;
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(null);
+
+        Dish popular = analyticsService.getPopularDish(vendorId);
+
+        assertEquals(null, popular);
+
     }
 }
 
