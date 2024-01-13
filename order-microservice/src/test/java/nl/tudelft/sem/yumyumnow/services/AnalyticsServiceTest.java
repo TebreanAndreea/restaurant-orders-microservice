@@ -3,6 +3,7 @@ package nl.tudelft.sem.yumyumnow.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
+import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -149,26 +150,24 @@ public class AnalyticsServiceTest {
     }
 
     @Test
-    void getPopularDish() {
+    void testGetPopularDishOneDish() {
         Long vendorId = 1L;
 
-        Dish dish1 = new Dish().id(1L).name("fries");
-        Dish dish2 = new Dish().id(2L).name("burger");
+        Dish dish = new Dish().id(1L).name("fries");
 
-        Order order1 = new Order().orderId(11L).dishes(List.of(dish1, dish2));
-        Order order2 = new Order().orderId(11L).dishes(Collections.singletonList(dish1));
-        List<Order> orders = List.of(order1, order2);
+        Order order = new Order().orderId(11L).dishes(Collections.singletonList(dish));
+        List<Order> orders = List.of(order);
 
         Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(orders);
 
         Dish popular = analyticsService.getPopularDish(vendorId);
 
         assertNotNull(popular);
-        assertEquals(dish1.getName(), popular.getName());
+        assertEquals(dish.getName(), popular.getName());
     }
 
     @Test
-    void getPopularDishMoreDishes() {
+    void testGetPopularDishMoreDishes() {
         Long vendorId = 1L;
 
         Dish dish1 = new Dish().id(1L).name("fries");
@@ -191,7 +190,7 @@ public class AnalyticsServiceTest {
     }
 
     @Test
-    void getPopularDishNonExistent() {
+    void testGetPopularDishNull() {
         Long vendorId = 1L;
 
         Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(null);
@@ -201,5 +200,54 @@ public class AnalyticsServiceTest {
         assertEquals(null, popular);
 
     }
+
+    @Test
+    void testAverageOrdersPerDayOneOrder() {
+        OffsetDateTime now = OffsetDateTime.now();
+
+        Order order = new Order().orderId(11L).time(now);
+        List<Order> orders = List.of(order);
+        Long vendorId = 1L;
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(orders);
+
+        Double average = analyticsService.averageOrdersPerDay(vendorId);
+
+        assertEquals(1, average);
+    }
+
+    @Test
+    void testAverageOrdersPerDayMoreOrders() {
+        OffsetDateTime now = OffsetDateTime.now();
+        OffsetDateTime yesterday = now.minusDays(1);
+        OffsetDateTime twoDaysAgo = now.minusDays(2);
+
+        Order order1 = new Order().orderId(11L).time(now);
+        Order order2 = new Order().orderId(11L).time(yesterday);
+        Order order3 = new Order().orderId(11L).time(yesterday);
+        Order order4 = new Order().orderId(11L).time(twoDaysAgo);
+        List<Order> orders = List.of(order1, order2, order3, order4);
+        Long vendorId = 1L;
+
+        Double expected = (1.0 + 2.0 + 1.0) / 3.0;
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(orders);
+
+        Double average = analyticsService.averageOrdersPerDay(vendorId);
+
+        assertEquals(expected, average);
+    }
+
+    @Test
+    void testAverageOrdersPerDayNull() {
+        Long vendorId = 1L;
+
+        Mockito.when(orderService.getAllOrdersForVendor(vendorId)).thenReturn(null);
+
+        Double average = analyticsService.averageOrdersPerDay(vendorId);
+
+        assertEquals(null, average);
+    }
+
 }
 

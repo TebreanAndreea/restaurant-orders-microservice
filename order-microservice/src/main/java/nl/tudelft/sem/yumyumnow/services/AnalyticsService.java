@@ -1,5 +1,6 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -116,6 +117,34 @@ public class AnalyticsService {
         }
 
         return null;
+    }
+
+    /**
+     * Calculate an average of orders per day.
+     *
+     * @param vendorId the id of the vendor
+     * @return the average or null
+     */
+    public Double averageOrdersPerDay(Long vendorId) {
+        List<Order> orders = orderService.getAllOrdersForVendor(vendorId);
+
+        if (orders != null && !orders.isEmpty()) {
+            Map<LocalDate, Long> ordersPerDay = new HashMap<>();
+
+            for (Order order : orders) {
+                LocalDate date = order.getTime().toLocalDate();
+                ordersPerDay.put(date, ordersPerDay.getOrDefault(date, 0L) + 1);
+            }
+
+            long totalOrders = 0;
+            for (Long order : ordersPerDay.values()) {
+                totalOrders += order;
+            }
+
+            return  totalOrders / (double) ordersPerDay.size();
+        } else {
+            return null;
+        }
     }
 
 }

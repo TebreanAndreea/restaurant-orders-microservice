@@ -218,5 +218,49 @@ public class AnalyticsControllerTest {
 
     }
 
+    @Test
+    void testGetOrdersPerDay() {
+        Long vendorId = 1L;
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenReturn(5.0);
+
+        ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(5.0, response.getBody());
+    }
+
+    @Test
+    void testGetOrdersPerDayNotFound() {
+        Long vendorId = 1L;
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenReturn(null);
+
+        ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
+
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrdersPerDayUnauthorized() {
+        Long vendorId = 1L;
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(false);
+
+        ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    void testGetOrdersPerDayInternalServerError() {
+        Long vendorId = 1L;
+        Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
+        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenThrow(new RuntimeException("Test Exception"));
+
+        ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
 }
 

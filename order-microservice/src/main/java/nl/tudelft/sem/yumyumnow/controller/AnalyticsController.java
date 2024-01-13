@@ -103,6 +103,12 @@ public class AnalyticsController implements AnalyticsApi {
         }
     }
 
+    /**
+     * Gets a vendor's most popular dish.
+     *
+     * @param vendorId ID of the vendor (required)
+     * @return a Response Entity containing the popular dish, or an error code
+     */
     @Override
     public ResponseEntity<Dish> getPopularDish(Long vendorId) {
         if (authenticationService.isVendor(vendorId)) {
@@ -113,6 +119,31 @@ public class AnalyticsController implements AnalyticsApi {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 } else {
                     return ResponseEntity.ok(popular);
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    /**
+     * Gets an average of orders per day for a vendor.
+     *
+     * @param vendorId ID of vendor (required)
+     * @return a Response Entity containing the average orders, or an error code
+     */
+    @Override
+    public ResponseEntity<Double> getOrdersPerDay(Long vendorId) {
+        if (authenticationService.isVendor(vendorId)) {
+            try {
+                Double average = analyticsService.averageOrdersPerDay(vendorId);
+
+                if (average != null) {
+                    return ResponseEntity.ok(average);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
             } catch (Exception e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
