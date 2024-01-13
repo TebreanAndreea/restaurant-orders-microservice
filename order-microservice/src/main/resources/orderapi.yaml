@@ -954,6 +954,13 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+        - name: dish
+          in: query
+          description: The dish to update
+          required: true
+          schema:
+              $ref: '#/components/schemas/Dish'
       responses:
         '200':
           description: Dish successfully updated

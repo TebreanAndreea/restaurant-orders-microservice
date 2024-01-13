@@ -15,6 +15,7 @@ import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -239,6 +240,29 @@ public class OrderController implements OrderApi {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
+        }
+    }
+
+    @Override
+    public ResponseEntity<Void> setOrderRequirements(Long orderId, Long userId, String body) {
+        try {
+            if (authenticationService.isCustomer(userId) && orderService.isUserAssociatedWithOrder(orderId, userId)) {
+                Order order = orderService.getOrderById(orderId);
+                order.setSpecialRequirenments(body);
+                Optional<Order> updatedOrder = orderService.modifyOrderRequirements(order);
+
+                if (updatedOrder.isPresent()) {
+                    return new ResponseEntity<>(HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
