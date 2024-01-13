@@ -426,7 +426,6 @@ public class OrderServiceTest {
         modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
 
         Optional<Order> retrievedOrder = orderService.modifyOrderRequirements(modifiedOrder);
-
         assertEquals(3, this.orderRepository.getMethodCalls().size());
         assertEquals("existsById", this.orderRepository.getMethodCalls().get(1));
         assertEquals("save", this.orderRepository.getMethodCalls().get(2));
