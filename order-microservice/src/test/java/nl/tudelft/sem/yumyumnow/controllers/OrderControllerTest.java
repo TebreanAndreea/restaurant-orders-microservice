@@ -525,6 +525,43 @@ public class OrderControllerTest {
     }
 
     @Test
+    public void testDeleteDishFromOrderNotFound() {
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(false);
+        Dish d = new Dish();
+        assertEquals(HttpStatus.NOT_FOUND, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderNotAuthorized() {
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(false);
+        Dish d = new Dish();
+        assertEquals(HttpStatus.UNAUTHORIZED, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderOk() {
+        Dish d = new Dish();
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
+        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(true);
+        assertEquals(HttpStatus.OK, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderError() {
+        Dish d = new Dish();
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
+        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(false);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+    
+    @Test
     public void testSetOrderRequirements() {
         Order order = new Order();
         order.setOrderId(10L);

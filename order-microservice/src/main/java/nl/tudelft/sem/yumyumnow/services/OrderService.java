@@ -263,6 +263,19 @@ public class OrderService {
         }
     }
 
+    /**
+     * Removes a dish from an order.
+     *
+     * @param orderId the order that is modified
+     * @param dish the dish to remove
+     * @return true if the dish was successfully removed, or if it wasn't present at the beginning.
+     */
+    public boolean removeDishFromOrder(Long orderId, Dish dish) {
+        Order order = this.getOrderById(orderId);
+        order.getDishes().removeIf(x -> Objects.equals(x.getId(), dish.getId()));
+        Order saved = this.orderRepository.save(order);
+        return saved.getDishes().stream().noneMatch(x -> Objects.equals(x.getId(), dish.getId()));
+    }
 
     /**
      * Modifies an existing order.
@@ -281,5 +294,4 @@ public class OrderService {
             return Optional.empty();
         }
     }
-
 }
