@@ -72,4 +72,45 @@ public class AnalyticsControllerTest {
         assertEquals(12.36, response.getBody());
     }
 
+    @Test
+    public void getOrdersPerMonthTestUnauthorized() {
+        when(this.authenticationService.isCustomer(13L)).thenReturn(false);
+        ResponseEntity<Double> response = analyticsController.getCustomerAveragePrice(13L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void getOrdersPerMonthTestError() {
+        when(this.authenticationService.isCustomer(13L)).thenReturn(true);
+        when(this.analyticsService.getOrdersPerMonth(13L)).thenThrow(RuntimeException.class);
+        ResponseEntity<Double> response = analyticsController.getOrdersPerMonth(13L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void getOrdersPerMonthTestNotFound() {
+        when(this.authenticationService.isCustomer(13L)).thenReturn(true);
+        when(this.analyticsService.getOrdersPerMonth(13L)).thenReturn(null);
+        ResponseEntity<Double> response = analyticsController.getOrdersPerMonth(13L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void getOrdersPerMonthTestValid() {
+        when(this.authenticationService.isCustomer(13L)).thenReturn(true);
+        when(this.analyticsService.getOrdersPerMonth(13L)).thenReturn(12.36);
+        ResponseEntity<Double> response = analyticsController.getOrdersPerMonth(13L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(12.36, response.getBody());
+    }
+
+
 }

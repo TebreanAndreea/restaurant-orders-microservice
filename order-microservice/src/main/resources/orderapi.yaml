@@ -1081,10 +1081,12 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Customer id not found
         '500':

@@ -39,4 +39,23 @@ public class AnalyticsController implements AnalyticsApi {
         }
 
     }
+
+    @Override
+    public ResponseEntity<Double> getOrdersPerMonth(Long customerId) {
+        if (this.authenticationService.isCustomer(customerId)) {
+            try {
+                Double averageNrOrder = this.analyticsService.getOrdersPerMonth(customerId);
+                if (averageNrOrder != null) {
+                    return ResponseEntity.ok(averageNrOrder);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
 }
