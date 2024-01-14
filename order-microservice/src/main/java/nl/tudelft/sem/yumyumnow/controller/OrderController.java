@@ -3,7 +3,6 @@ package nl.tudelft.sem.yumyumnow.controller;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Objects;
 import java.util.Optional;
 import javax.validation.Valid;
 import nl.tudelft.sem.yumyumnow.api.OrderApi;
@@ -243,6 +242,32 @@ public class OrderController implements OrderApi {
         }
     }
 
+    /**
+     * Removes a dish from an order, and saves the changes to the DB.
+     *
+     * @param orderId ID of the order from which the dish is removed (required)
+     * @param userId ID of user who made the order (required)
+     * @param dish The dish to remove (optional)
+     * @return only an HTTP status
+     */
+    @Override
+    public ResponseEntity<Void> removeDishFromOrder(Long orderId, Long userId, Dish dish) {
+        if (!this.orderService.existsAtId(orderId)) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } else if (!this.orderService.isUserAssociatedWithOrder(orderId, userId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            boolean status = this.orderService.removeDishFromOrder(orderId, dish);
+            if (!status) {
+                throw new RuntimeException();
+            }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
     @Override
     public ResponseEntity<Void> setOrderRequirements(Long orderId, Long userId, String body) {
         try {
@@ -265,5 +290,4 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
-
 }

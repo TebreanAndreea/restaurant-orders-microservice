@@ -11,6 +11,8 @@ import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
+import nl.tudelft.sem.yumyumnow.model.Rating;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -105,6 +107,26 @@ public class OrderService {
         }
 
         return allOrdersForVendor;
+    }
+
+    /**
+     * Get all rating in the system for a vendor's orders.
+     *
+     * @param vendorId the id of the vendor
+     * @return a list with all the ratings' ids
+     */
+    public List<Long> getAllRatingsForVendor(Long vendorId) {
+        List<Order> orders = getAllOrdersForVendor(vendorId);
+        List<Long> ratingsIds = new ArrayList<>();
+
+        if (orders != null && !orders.isEmpty()) {
+            for (Order o : orders) {
+                ratingsIds.add(o.getRatingId());
+            }
+            return ratingsIds;
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -241,6 +263,19 @@ public class OrderService {
         }
     }
 
+    /**
+     * Removes a dish from an order.
+     *
+     * @param orderId the order that is modified
+     * @param dish the dish to remove
+     * @return true if the dish was successfully removed, or if it wasn't present at the beginning.
+     */
+    public boolean removeDishFromOrder(Long orderId, Dish dish) {
+        Order order = this.getOrderById(orderId);
+        order.getDishes().removeIf(x -> Objects.equals(x.getId(), dish.getId()));
+        Order saved = this.orderRepository.save(order);
+        return saved.getDishes().stream().noneMatch(x -> Objects.equals(x.getId(), dish.getId()));
+    }
 
     /**
      * Modifies an existing order.
@@ -259,5 +294,4 @@ public class OrderService {
             return Optional.empty();
         }
     }
-
 }
