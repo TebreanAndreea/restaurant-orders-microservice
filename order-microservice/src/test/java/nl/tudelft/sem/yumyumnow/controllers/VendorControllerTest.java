@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
@@ -296,6 +297,38 @@ public class VendorControllerTest {
         Mockito.when(this.vendorService.getDishesToPrepare(100L, 12L)).thenThrow(RuntimeException.class);
 
         ResponseEntity<List<Dish>> response = vendorController.getDishesToPrepare(100L, 12L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetVendor() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+        vendor.setName("Messi");
+
+        Mockito.when(vendorService.getVendorById(10L)).thenReturn(vendor);
+        ResponseEntity<Vendor> response = vendorController.getVendor(10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(vendor, response.getBody());
+    }
+
+    @Test
+    public void testGetVendorNotFound() {
+        Mockito.when(vendorService.getVendorById(10L)).thenThrow(new NoSuchElementException());
+        ResponseEntity<Vendor> response = vendorController.getVendor(10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetVendorError() {
+        Mockito.when(vendorService.getVendorById(10L)).thenThrow(new RuntimeException());
+        ResponseEntity<Vendor> response = vendorController.getVendor(10L);
 
         assertNotNull(response);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());

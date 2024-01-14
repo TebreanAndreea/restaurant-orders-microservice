@@ -13,6 +13,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Stream;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
@@ -407,5 +408,70 @@ public class OrderServiceTest {
         assertEquals(deleted1, true);
         assertEquals(deleted2, false);
         assertEquals(foundOrders.size(), 1);
+    }
+
+    @Test
+    public void testRemoveDishNonExistingOrder() {
+        assertThrows(NoSuchElementException.class, () ->
+                this.orderService.removeDishFromOrder(12L, new Dish()));
+    }
+
+    @Test
+    public void testRemoveDishNotPresent() {
+        Dish d1 = new Dish().id(1L).name("Pizza Regina");
+        Dish d2 = new Dish().id(2L).name("Pizza Hawaii");
+        Order order = new Order().orderId(15L).dishes(new ArrayList<>(List.of(d1)));
+        this.orderRepository.save(order);
+        assertTrue(order.getDishes().stream().noneMatch(x -> x.getId().equals(2L)));
+        assertTrue(this.orderService.removeDishFromOrder(15L, d2));
+        assertEquals(1, this.orderService.getOrderById(15L).getDishes().size());
+    }
+
+    @Test
+    public void testRemoveDishPresent() {
+        Dish d1 = new Dish().id(1L).name("Pizza Regina");
+        Dish d2 = new Dish().id(2L).name("Pizza Hawaii");
+        Order order = new Order().orderId(15L).dishes(new ArrayList<>(List.of(d1, d2)));
+        this.orderRepository.save(order);
+        assertEquals(2, order.getDishes().size());
+        assertTrue(this.orderService.removeDishFromOrder(15L, d2));
+        assertEquals(1, this.orderService.getOrderById(15L).getDishes().size());
+    }
+
+    @Test
+    public void testModifyRequirements() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        orderRepository.save(order);
+
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("save", this.orderRepository.getMethodCalls().get(0));
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Optional<Order> retrievedOrder = orderService.modifyOrderRequirements(modifiedOrder);
+
+        assertEquals(10L, retrievedOrder.get().getOrderId());
+        assertEquals("Tuna, no crust.", retrievedOrder.get().getSpecialRequirenments());
+        assertEquals(3, this.orderRepository.getMethodCalls().size());
+        assertEquals("existsById", this.orderRepository.getMethodCalls().get(1));
+        assertEquals("save", this.orderRepository.getMethodCalls().get(2));
+    }
+
+    @Test
+    public void testModifyRequirementsOrderNotFound() {
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(10L);
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Optional<Order> retrievedOrder = orderService.modifyOrderRequirements(modifiedOrder);
+
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("existsById", this.orderRepository.getMethodCalls().get(0));
+        assertEquals(Optional.empty(), retrievedOrder);
     }
 }

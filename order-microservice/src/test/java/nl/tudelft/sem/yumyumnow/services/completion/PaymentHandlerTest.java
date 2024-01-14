@@ -17,7 +17,8 @@ public class PaymentHandlerTest {
     private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
-            return Order.StatusEnum.ON_TRANSIT;
+            return order.getStatus() == Order.StatusEnum.ACCEPTED ? Order.StatusEnum.ON_TRANSIT :
+                    Order.StatusEnum.REJECTED;
         }
     };
 
@@ -39,14 +40,26 @@ public class PaymentHandlerTest {
                 .map(Arguments::of);
     }
 
-    @Test
-    public void testPaymentFailed() {
-        Order order1 = new Order().status(Order.StatusEnum.PENDING).customerId(10L).price(-5.0D);
-        Order order2 = new Order().status(Order.StatusEnum.PENDING).customerId(null).price(45.0D);
-        Order order3 = new Order().status(Order.StatusEnum.PENDING).customerId(null).price(0.0D);
-        assertEquals(Order.StatusEnum.REJECTED, this.paymentHandler.handleOrderCompletion(order1));
-        assertEquals(Order.StatusEnum.REJECTED, this.paymentHandler.handleOrderCompletion(order2));
-        assertEquals(Order.StatusEnum.REJECTED, this.paymentHandler.handleOrderCompletion(order3));
+    @ParameterizedTest
+    @MethodSource("generateFailedPayments")
+    public void testPaymentFailed(Long customerId, Double price) {
+        Order order = new Order().status(Order.StatusEnum.PENDING).customerId(customerId).price(price);
+        assertEquals(Order.StatusEnum.REJECTED, this.paymentHandler.handleOrderCompletion(order));
+    }
+
+    /**
+     * Generates the cases where the payment fails.
+     *
+     * @return a stream of arguments representing the failing cases
+     */
+    public static Stream<Arguments> generateFailedPayments() {
+        return Stream.of(Arguments.of(10L, -5.0D),
+                Arguments.of(15L, 0.0D),
+                Arguments.of(null, 45.0D),
+                Arguments.of(null, -0.5D),
+                Arguments.of(null, 0.0D),
+                Arguments.of(12L, null),
+                Arguments.of(null, null));
     }
 
     @Test

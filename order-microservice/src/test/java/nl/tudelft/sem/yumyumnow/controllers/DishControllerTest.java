@@ -42,4 +42,36 @@ public class DishControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(dish, response.getBody());
     }
+
+    @Test
+    public void testUpdateDish() {
+        Dish dish = new Dish();
+        dish.setName("Pizza");
+        dish.setId(1L);
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(dish));
+        Mockito.when(dishService.modifyDish(dish)).thenReturn(Optional.of(dish));
+
+        ResponseEntity<Dish> response = dishController.updateDish(1L, dish);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateDishNotFound() {
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.empty());
+
+        ResponseEntity<Dish> response = dishController.updateDish(1L, new Dish());
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testUpdateDishInternalServerError() {
+        Dish dish = new Dish();
+        dish.setName("Pizza");
+        dish.setId(1L);
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(dish));
+        Mockito.when(dishService.modifyDish(dish)).thenReturn(Optional.empty());
+
+        ResponseEntity<Dish> response = dishController.updateDish(1L, dish);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
 }
