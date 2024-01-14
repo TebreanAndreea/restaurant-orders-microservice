@@ -1,6 +1,6 @@
 package nl.tudelft.sem.yumyumnow.services;
 
-import java.time.Month;
+
 import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
@@ -22,6 +22,15 @@ public class AnalyticsService {
     private VendorService vendorService;
     private OrderService orderService;
     private final CustomerService customerService;
+
+    /**
+     * Constructor for the service.
+     *
+     * @param customerService Instance of customerService.
+     * @param vendorService Instance of vendorService.
+     * @param ratingRepository Instance of ratingRepository.
+     * @param orderService Instance of orderService.
+     */
 
     public AnalyticsService(CustomerService customerService,
                             VendorService vendorService,
