@@ -193,4 +193,20 @@ public class AnalyticsController implements AnalyticsApi {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    @Override
+    public ResponseEntity<Void> setOrderRating(Long orderId, Rating rating) {
+        try {
+            Order order = this.orderService.getOrderById(orderId);
+            if (order != null && rating != null) {
+                this.analyticsService.setOrderRating(orderId, rating);
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

@@ -2,8 +2,11 @@ package nl.tudelft.sem.yumyumnow.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.AnalyticsController;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
@@ -345,6 +348,54 @@ public class AnalyticsControllerTest {
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(12.36, response.getBody());
+    }
+
+
+
+
+
+
+    @Test
+    public void setOrderRatingTestError() {
+        Rating rating = new Rating();
+        when(this.orderService.getOrderById(13L)).thenThrow(NoSuchElementException.class);
+        ResponseEntity<Void> response = analyticsController.setOrderRating(13L, rating);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void setOrderRatingTestNotFound1() {
+        Rating rating = new Rating();
+        when(this.orderService.getOrderById(13L)).thenReturn(null);
+        ResponseEntity<Void> response = analyticsController.setOrderRating(13L, rating);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void setOrderRatingTestNotFound2() {
+        Order order = new Order();
+        when(this.orderService.getOrderById(13L)).thenReturn(order);
+        ResponseEntity<Void> response = analyticsController.setOrderRating(13L, null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void setOrderRatingTestValid() {
+        Order order = new Order();
+        Rating rating = new Rating();
+        rating.setId(2L);
+        when(this.orderService.getOrderById(13L)).thenReturn(order);
+        ResponseEntity<Void> response = analyticsController.setOrderRating(13L, rating);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        verify(this.analyticsService, times(1)).setOrderRating(13L, rating);
     }
 
 

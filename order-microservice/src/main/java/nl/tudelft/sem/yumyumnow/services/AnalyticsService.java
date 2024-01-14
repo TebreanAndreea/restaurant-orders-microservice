@@ -5,8 +5,10 @@ import java.time.LocalDate;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.database.RatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
@@ -19,6 +21,8 @@ import org.springframework.stereotype.Service;
 public class AnalyticsService {
 
     private final RatingRepository ratingRepository;
+
+    private final OrderRepository orderRepository;
     private VendorService vendorService;
     private OrderService orderService;
     private final CustomerService customerService;
@@ -35,11 +39,13 @@ public class AnalyticsService {
     public AnalyticsService(CustomerService customerService,
                             VendorService vendorService,
                             RatingRepository ratingRepository,
-                            OrderService orderService) {
+                            OrderService orderService,
+                            OrderRepository orderRepository) {
         this.customerService = customerService;
         this.vendorService = vendorService;
         this.ratingRepository = ratingRepository;
         this.orderService = orderService;
+        this.orderRepository = orderRepository;
     }
 
     public Optional<Rating> getRatingById(Long ratingId) {
@@ -207,5 +213,24 @@ public class AnalyticsService {
             return null;
         }
         return null;
+    }
+
+    /**
+     *  Setting a rating to an order.
+     *
+     * @param orderId The order's id.
+     * @param rating The new rating for an order.
+     */
+    public void setOrderRating(Long orderId, Rating rating) {
+        try {
+            Order order = this.orderService.getOrderById(orderId);
+            if (order != null && (rating != null && rating.getId() != null)) {
+                ratingRepository.save(rating);
+                order.setRatingId(rating.getId());
+                orderRepository.save(order);
+            }
+        } catch (NoSuchElementException e) {
+            return;
+        }
     }
 }

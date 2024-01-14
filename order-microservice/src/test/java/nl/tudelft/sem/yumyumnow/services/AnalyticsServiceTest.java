@@ -4,13 +4,16 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.time.OffsetDateTime;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
+import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
 import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
 import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
@@ -23,6 +26,7 @@ import org.mockito.Mockito;
 public class AnalyticsServiceTest {
 
     private TestRatingRepository testRatingRepository;
+    private TestOrderRepository testOrderRepository;
     private CustomerService customerService;
     private AnalyticsService analyticsService;
     private VendorService vendorService;
@@ -30,11 +34,13 @@ public class AnalyticsServiceTest {
 
     @BeforeEach
     void setUp() {
-        customerService = mock(CustomerService.class);
+        this.customerService = mock(CustomerService.class);
         this.vendorService = Mockito.mock(VendorService.class);
         this.orderService = Mockito.mock(OrderService.class);
         this.testRatingRepository = new TestRatingRepository();
-        this.analyticsService = new AnalyticsService(customerService, vendorService, testRatingRepository, orderService);
+        this.testOrderRepository = new TestOrderRepository();
+        this.analyticsService = new AnalyticsService(customerService, vendorService,
+            testRatingRepository, orderService, testOrderRepository);
     }
 
     @Test
@@ -410,6 +416,62 @@ public class AnalyticsServiceTest {
         customer.setPastOrders(orderList);
         when(customerService.getCustomer(13L)).thenReturn(customer);
         assertEquals(5.0 / 3.0, this.analyticsService.getOrdersPerMonth(13L));
+    }
 
+    @Test
+    public void setOrderRatingTestException() {
+        Order order = null;
+        Rating rating = new Rating();
+        when(this.orderService.getOrderById(12L)).thenThrow(NoSuchElementException.class);
+        this.analyticsService.setOrderRating(12L, rating);
+        assertEquals(0, this.testRatingRepository.getMethodCalls().size());
+        assertEquals(0, this.testOrderRepository.getMethodCalls().size());
+    }
+
+    @Test
+    public void setOrderRatingTestNullOrder() {
+        Order order = null;
+        Rating rating = new Rating();
+        when(this.orderService.getOrderById(12L)).thenReturn(null);
+        this.analyticsService.setOrderRating(12L, rating);
+        assertEquals(0, this.testRatingRepository.getMethodCalls().size());
+        assertEquals(0, this.testOrderRepository.getMethodCalls().size());
+    }
+
+    @Test
+    public void setOrderRatingTestNullRating() {
+        Order order = new Order();
+        Rating rating = null;
+        when(this.orderService.getOrderById(12L)).thenReturn(order);
+        this.analyticsService.setOrderRating(12L, rating);
+        assertEquals(0, this.testRatingRepository.getMethodCalls().size());
+        assertEquals(0, this.testOrderRepository.getMethodCalls().size());
+    }
+
+    @Test
+    public void setOrderRatingTestNullId() {
+        Order order = new Order();
+        Rating rating = new Rating();
+        rating.setId(null);
+        when(this.orderService.getOrderById(12L)).thenReturn(order);
+        this.analyticsService.setOrderRating(12L, rating);
+        assertEquals(0, this.testRatingRepository.getMethodCalls().size());
+        assertEquals(0, this.testOrderRepository.getMethodCalls().size());
+    }
+
+    @Test
+    public void setOrderRatingTestValid() {
+        Order order = new Order();
+        order.setRatingId(2L);
+        order.setOrderId(this.testOrderRepository.count());
+        Rating rating = new Rating();
+        rating.setId(2L);
+        when(this.orderService.getOrderById(12L)).thenReturn(order);
+        this.analyticsService.setOrderRating(12L, rating);
+        assertEquals(1, this.testRatingRepository.getMethodCalls().size());
+        assertEquals(Optional.of(rating), this.testRatingRepository.findById(rating.getId()));
+        assertEquals(2, this.testOrderRepository.getMethodCalls().size());
+        assertEquals("save", this.testOrderRepository.getMethodCalls().get(1));
+        assertEquals(rating.getId(), this.testOrderRepository.findById(order.getOrderId()).get().getRatingId());
     }
 }
