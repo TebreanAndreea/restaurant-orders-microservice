@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 package nl.tudelft.sem.yumyumnow.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -38,7 +37,7 @@ public class AnalyticsControllerTest {
         this.analyticsService = Mockito.mock(AnalyticsService.class);
         this.orderService = Mockito.mock(OrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
-        this.analyticsController = new AnalyticsController(analyticsService, authenticationService);
+        this.analyticsController = new AnalyticsController(orderService, analyticsService, authenticationService);
     }
 
     @Test

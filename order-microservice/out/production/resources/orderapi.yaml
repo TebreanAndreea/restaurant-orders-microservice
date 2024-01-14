@@ -954,6 +954,13 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
+        - name: dish
+          in: query
+          description: The dish to update
+          required: true
+          schema:
+              $ref: '#/components/schemas/Dish'
       responses:
         '200':
           description: Dish successfully updated
@@ -983,16 +990,19 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
           description: Average price successfully retrieved
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1051,10 +1061,12 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1113,10 +1125,12 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1143,10 +1157,10 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                $ref: '#/components/schemas/Rating'
             application/xml:
               schema:
-                type: integer
+                $ref: '#/components/schemas/Rating'
         '404':
           description: Order id not found
         '500':
@@ -1193,6 +1207,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
           description: Popular Dish successfully retrieved
