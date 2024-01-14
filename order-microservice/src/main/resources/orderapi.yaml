@@ -990,16 +990,19 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
           description: Average price successfully retrieved
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1056,10 +1059,12 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1116,10 +1121,12 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: number
+                format: double
             application/xml:
               schema:
-                type: integer
+                type: number
+                format: double
         '404':
           description: Vendor id not found
         '500':
@@ -1196,6 +1203,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
       responses:
         '200':
           description: Popular Dish successfully retrieved

@@ -11,6 +11,8 @@ import nl.tudelft.sem.yumyumnow.database.OrderRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
+import nl.tudelft.sem.yumyumnow.model.Rating;
+import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -105,6 +107,26 @@ public class OrderService {
         }
 
         return allOrdersForVendor;
+    }
+
+    /**
+     * Get all rating in the system for a vendor's orders.
+     *
+     * @param vendorId the id of the vendor
+     * @return a list with all the ratings' ids
+     */
+    public List<Long> getAllRatingsForVendor(Long vendorId) {
+        List<Order> orders = getAllOrdersForVendor(vendorId);
+        List<Long> ratingsIds = new ArrayList<>();
+
+        if (orders != null && !orders.isEmpty()) {
+            for (Order o : orders) {
+                ratingsIds.add(o.getRatingId());
+            }
+            return ratingsIds;
+        } else {
+            return null;
+        }
     }
 
     /**

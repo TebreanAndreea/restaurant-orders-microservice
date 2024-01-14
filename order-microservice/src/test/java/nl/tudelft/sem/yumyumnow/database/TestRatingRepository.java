@@ -106,7 +106,11 @@ public class TestRatingRepository implements RatingRepository {
 
     @Override
     public <S extends Rating> List<S> saveAll(Iterable<S> entities) {
-        return null;
+        List<S> savedEntities = new ArrayList<>();
+        for (S entity : entities) {
+            savedEntities.add(save(entity));
+        }
+        return savedEntities;
     }
 
     @Override
