@@ -224,6 +224,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - name: vendorId
           in: path
           description: ID of vendor that needs to remove the dish
