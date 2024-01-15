@@ -30,7 +30,7 @@ public class AnalyticsController implements AnalyticsApi {
      */
     @Autowired
     public AnalyticsController(OrderService orderService, AnalyticsService analyticsService,
-                    AuthenticationService authenticationService) {
+                               AuthenticationService authenticationService) {
         this.orderService = orderService;
         this.analyticsService = analyticsService;
         this.authenticationService = authenticationService;
@@ -150,6 +150,63 @@ public class AnalyticsController implements AnalyticsApi {
             }
         } else {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Double> getCustomerAveragePrice(Long customerId) {
+        if (this.authenticationService.isCustomer(customerId)) {
+            try {
+                Double averagePrice = this.analyticsService.getCustomerAveragePrice(customerId);
+                if (averagePrice != null) {
+                    return ResponseEntity.ok(averagePrice);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
+
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+
+    }
+
+    @Override
+    public ResponseEntity<Double> getOrdersPerMonth(Long customerId) {
+        if (this.authenticationService.isCustomer(customerId)) {
+            try {
+                Double averageNrOrder = this.analyticsService.getOrdersPerMonth(customerId);
+                if (averageNrOrder != null) {
+                    return ResponseEntity.ok(averageNrOrder);
+                } else {
+                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                }
+
+            } catch (RuntimeException e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
+
+    @Override
+    public ResponseEntity<Void> setOrderRating(Long orderId, Rating rating) {
+        try {
+            Order order = this.orderService.getOrderById(orderId);
+            if (order != null && rating != null) {
+                this.analyticsService.setOrderRating(orderId, rating);
+                return new ResponseEntity<>(HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 }
