@@ -65,6 +65,33 @@ public class VendorController implements VendorApi {
     }
 
     @Override
+    public ResponseEntity<Void> removeDishFromVendor(Long dishId, Long vendorId) {
+        try {
+            Optional<Dish> optionalDish = dishService.getDishById(dishId);
+            Vendor vendor = vendorService.getVendorById(vendorId);
+            Dish dish;
+
+            if (optionalDish.isPresent()) {
+                dish = optionalDish.get();
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            boolean removed = vendorService.removeDishFromVendor(dish, vendor);
+
+            if (!removed) {
+                throw new RuntimeException();
+            }
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<List<Dish>> getVendorDishes(Long vendorId, Long customerId) {
         if (this.authenticationService.isCustomer(customerId) && this.authenticationService.isVendor(vendorId)) {
             List<Dish> dishes = vendorService.getVendorDishesforCustomer(vendorId, customerId);

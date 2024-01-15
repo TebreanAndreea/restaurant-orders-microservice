@@ -168,6 +168,75 @@ public class VendorControllerTest {
     }
 
     @Test
+    public void testRemoveDishFromVendor() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+
+        Dish d1 = new Dish().id(1L).name("Dumplings");
+        Dish d2 = new Dish().id(2L).name("Schnitzel");
+        List<Dish> dishes = new ArrayList<>(List.of(d1, d2));
+
+        vendor.setDishes(dishes);
+
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(d1));
+        Mockito.when(vendorService.getVendorById(10L)).thenReturn(vendor);
+        Mockito.when(vendorService.removeDishFromVendor(d1, vendor)).thenReturn(true);
+
+        ResponseEntity<Void> response = vendorController.removeDishFromVendor(1L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveDishFromVendorNotFound1() {
+        Dish d1 = new Dish().id(1L).name("Dumplings");
+
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(d1));
+        Mockito.when(vendorService.getVendorById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<Void> response = vendorController.removeDishFromVendor(1L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveDishFromVendorNotFound2() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.empty());
+        Mockito.when(vendorService.getVendorById(10L)).thenReturn(vendor);
+
+        ResponseEntity<Void> response = vendorController.removeDishFromVendor(1L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testRemoveDishFromVendorError() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+
+        Dish d1 = new Dish().id(1L).name("Dumplings");
+        Dish d2 = new Dish().id(2L).name("Schnitzel");
+        List<Dish> dishes = new ArrayList<>(List.of(d1, d2));
+
+        vendor.setDishes(dishes);
+
+        Mockito.when(dishService.getDishById(1L)).thenReturn(Optional.of(d1));
+        Mockito.when(vendorService.getVendorById(10L)).thenReturn(vendor);
+        Mockito.when(vendorService.removeDishFromVendor(d1, vendor)).thenReturn(false);
+
+        ResponseEntity<Void> response = vendorController.removeDishFromVendor(1L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void unauthorizedAccessTestToGetDishesNoCustomer() {
         Mockito.when(this.authenticationService.isCustomer(12L)).thenReturn(false);
         Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(true);

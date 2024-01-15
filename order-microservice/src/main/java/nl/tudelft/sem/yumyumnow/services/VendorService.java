@@ -106,6 +106,20 @@ public class VendorService {
     }
 
     /**
+     * Removes a dish from a vendor's catalog.
+     *
+     * @param dish The dish to be removed.
+     * @param vendor The vendor to remove the dish from.
+     * @return true if the dish was successfully removed, or if it wasn't present in the catalog to begin with.
+     */
+    public boolean removeDishFromVendor(Dish dish, Vendor vendor) {
+        vendor.getDishes().removeIf(x -> Objects.equals(x.getId(), dish.getId()));
+        Vendor savedVendor = vendorRepository.save(vendor);
+        boolean removed = !(savedVendor.getDishes().contains(dish));
+        return removed;
+    }
+
+    /**
      * Return the dishes from the order with orderId that vendor with vendorId needs to prepare.
      *
      * @param orderId The order's id.
