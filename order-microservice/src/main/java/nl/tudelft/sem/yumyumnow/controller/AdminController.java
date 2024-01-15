@@ -1,6 +1,10 @@
 package nl.tudelft.sem.yumyumnow.controller;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.NoSuchElementException;
+import java.util.Objects;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.AdminApi;
 import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Order;
@@ -74,6 +78,13 @@ public class AdminController implements AdminApi {
         }
     }
 
+    /**
+     * An admin can view any order in the system.
+     *
+     * @param orderId ID of order to be retrieved
+     * @param adminId ID of admin viewing the order
+     * @return the order to be viewed
+     */
     @Override
     public ResponseEntity<Order> getOrderAdmin(Long orderId, Long adminId) {
         try {
