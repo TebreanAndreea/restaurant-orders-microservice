@@ -94,17 +94,13 @@ public class AdminController implements AdminApi {
         if (!this.orderService.existsAtId(orderId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        try {
-            Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
+        Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
 
-            if (modifiedOrder == null) {
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-
-            return new ResponseEntity<>(HttpStatus.OK);
-        } catch (RuntimeException e) {
+        if (modifiedOrder == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @Override

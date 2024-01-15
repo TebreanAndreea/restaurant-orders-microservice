@@ -47,8 +47,8 @@ public class AnalyticsController implements AnalyticsApi {
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-        } catch (NoSuchElementException e) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -145,7 +145,7 @@ public class AnalyticsController implements AnalyticsApi {
                 } else {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
                 }
-            } catch (Exception e) {
+            } catch (RuntimeException e) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else {

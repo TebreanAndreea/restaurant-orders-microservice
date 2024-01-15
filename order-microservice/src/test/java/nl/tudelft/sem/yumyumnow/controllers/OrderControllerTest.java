@@ -613,6 +613,28 @@ public class OrderControllerTest {
     }
 
     @Test
+    public void testSetOrderRequirementsUpdateEmpty() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.empty());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void testSetOrderRequirementsOrderNotFound() {
         Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
         Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);

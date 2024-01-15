@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
+import java.util.stream.Stream;
 import nl.tudelft.sem.yumyumnow.controller.VendorController;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Customer;
@@ -19,6 +20,9 @@ import nl.tudelft.sem.yumyumnow.services.DishService;
 import nl.tudelft.sem.yumyumnow.services.VendorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -475,6 +479,15 @@ public class VendorControllerTest {
     }
 
     @Test
+    public void testGetAllVendorsError() {
+        Mockito.when(this.vendorService.getAllVendors()).thenThrow(new RuntimeException());
+        ResponseEntity<List<Vendor>> response = this.vendorController.getAllVendors(null);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     public void testGetVendorsAddressEmptyFilter() {
         Location customer = new Location();
         customer.setLatitude(23.0);
@@ -497,7 +510,7 @@ public class VendorControllerTest {
     }
 
     @Test
-    public void testGetVendorsAddress() {
+    public void testGetVendorsAddressRadiusZero() {
         Location customer = new Location();
         customer.setLatitude(23.0);
         customer.setLongitude(45.0);
@@ -507,23 +520,63 @@ public class VendorControllerTest {
         v1.setId(1L);
         v1.setLocation(customer);
 
+        List<Vendor> vendors = new ArrayList<>();
+        vendors.add(v1);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 0)).thenReturn(vendors);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 0);
+
+        assertNotNull(vendorsReceived);
+        assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
+        assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+    }
+
+    /**
+     * Test for valid locations.
+     *
+     * @param location the location
+     */
+    @ParameterizedTest
+    @MethodSource("validLocations")
+    public void testGetVendorsAddress(Location location) {
+
+        Vendor v1 = new Vendor();
+        v1.setName("Bistro de l'Arte");
+        v1.setId(1L);
+        v1.setLocation(location);
+
         Vendor v2 = new Vendor();
         v2.setName("Bistro Aha");
         v2.setId(2L);
         v2.setLocation(new Location());
-        v2.getLocation().setLatitude(23.0);
-        v2.getLocation().setLongitude(45.01);
+        v2.getLocation().setLatitude(location.getLatitude());
+        v2.getLocation().setLongitude(location.getLongitude() + 0.01);
 
         List<Vendor> vendors = new ArrayList<>();
         vendors.add(v1);
         vendors.add(v2);
 
-        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 2000)).thenReturn(vendors);
-        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 2000);
+        Mockito.when(this.vendorService.findByLocationWithinRadius(location, "bistro", 2000)).thenReturn(vendors);
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(location, "bistro", 2000);
 
         assertNotNull(vendorsReceived);
         assertEquals(HttpStatus.OK, vendorsReceived.getStatusCode());
         assertEquals(1L, vendorsReceived.getBody().get(0).getId());
+    }
+
+    /**
+     * Valid locations stream.
+     *
+     * @return the stream
+     */
+    public static Stream<Arguments> validLocations() {
+        return Stream.of(
+          Arguments.of(new Location(1L, 23.0, 45.0)),
+            Arguments.of(new Location(2L, 90.0, 45.0)),
+            Arguments.of(new Location(2L, -90.0, 45.0)),
+            Arguments.of(new Location(2L, 90.0, 180.0)),
+            Arguments.of(new Location(2L, 90.0, -180.0))
+        );
     }
 
     @Test
@@ -571,8 +624,22 @@ public class VendorControllerTest {
     }
 
     @Test
+    public void testGetVendorsAllAddressError() {
+        Location customer = new Location();
+        customer.setLatitude(23.0);
+        customer.setLongitude(45.0);
+
+        Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro",
+            1000)).thenThrow(new RuntimeException());
+        ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 1000);
+
+        assertNotNull(vendorsReceived);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, vendorsReceived.getStatusCode());
+    }
+
+    @Test
     public void testModifyDishSuccess() {
-        Long dishId = 1L;
+        Long dishId = 0L;
         Long vendorId = 2L;
         Dish modifiedDish = new Dish().name("fries").price(34.5);
 

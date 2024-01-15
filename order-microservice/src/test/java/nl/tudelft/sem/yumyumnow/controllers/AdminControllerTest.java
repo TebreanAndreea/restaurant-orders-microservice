@@ -220,7 +220,7 @@ public class AdminControllerTest {
         Mockito.when(this.authenticationService.isVendor(2L)).thenReturn(true);
         Mockito.when(this.authenticationService.isCustomer(1L)).thenReturn(false);
 
-        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(2L, 1L, 3L);
         assertNotNull(orderReceived);
         assertEquals(HttpStatus.UNAUTHORIZED, orderReceived.getStatusCode());
     }
