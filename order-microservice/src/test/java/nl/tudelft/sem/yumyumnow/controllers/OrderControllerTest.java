@@ -18,10 +18,8 @@ import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -642,6 +640,46 @@ public class OrderControllerTest {
 
         ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
         assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatus() {
+        Long orderId = 1L;
+        Long userId = 100L;
+        String body = "accepted";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(true);
+        Mockito.when(orderService.setOrderStatus(orderId, Order.StatusEnum.fromValue(body))).thenReturn(true);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatusUnauthorized() {
+        Long orderId = 1L;
+        Long userId = 200L;
+        String body = "accepted";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatusInternalServerError() {
+        Long orderId = 1L;
+        Long userId = 300L;
+        String body = "invalid";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(true);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }
