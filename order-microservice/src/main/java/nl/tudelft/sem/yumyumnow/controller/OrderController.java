@@ -290,4 +290,33 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+    /**
+     * Updates the status of an order.
+     *
+     * @param orderId ID of order that needs to be handled (required)
+     * @param userId ID of user who made the order (required)
+     * @param body Update an order&#39;s status (optional)
+     * @return only an HTTP status
+     */
+    @Override
+    public ResponseEntity<Void> setOrderStatus(Long orderId, Long userId, String body) {
+        if (this.authenticationService.isVendor(userId)) {
+            try {
+                Order.StatusEnum newStatus = Order.StatusEnum.fromValue(body);
+
+                boolean saved = this.orderService.setOrderStatus(orderId, newStatus);
+
+                if (saved) {
+                    return new ResponseEntity<>(HttpStatus.OK);
+                } else {
+                    throw new RuntimeException("Save operation failed");
+                }
+            } catch (Exception e) {
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+    }
 }

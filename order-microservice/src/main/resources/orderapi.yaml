@@ -820,6 +820,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - name: userId
           in: path
           description: ID of user who made the order
@@ -827,11 +828,6 @@ paths:
           schema:
             type: integer
             format: int64
-        - name: status
-          in: query
-          description: new status of order that needs to be handled
-          schema:
-            type: string
       requestBody:
         description: Update an order's status
         content:
@@ -841,13 +837,6 @@ paths:
       responses:
         '200':
           description: Order's status successfully updated
-          content:
-            application/json:
-              schema:
-                type: string
-            application/xml:
-              schema:
-                type: string
         '404':
           description: Order id not found
         '401':
