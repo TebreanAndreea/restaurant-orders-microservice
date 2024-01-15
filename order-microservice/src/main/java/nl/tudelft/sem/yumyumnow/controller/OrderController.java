@@ -319,4 +319,33 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
     }
+
+    /**
+     * Returns the status of an order.
+     *
+     * @param orderId ID of order of which to retrieve status from
+     * @param userId ID of user who made the order
+     * @return the current status of the order
+     */
+    @Override
+    public ResponseEntity<String> getOrderStatus(Long orderId, Long userId) {
+        try {
+            if (authenticationService.isCustomer(userId) && orderService.isUserAssociatedWithOrder(orderId, userId)) {
+                Order order = orderService.getOrderById(orderId);
+
+                if (order.getStatus() != null) {
+                    String status = order.getStatus().getValue();
+                    return ResponseEntity.ok(status);
+                }
+
+                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 }

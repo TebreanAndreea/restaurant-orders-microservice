@@ -704,4 +704,83 @@ public class OrderControllerTest {
 
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
+
+    @Test
+    public void testGetOrderStatus() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setStatus(Order.StatusEnum.PENDING);
+
+        Mockito.when(authenticationService.isCustomer(order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(order.getOrderId(), order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.getOrderById(order.getOrderId())).thenReturn(order);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(order.getOrderId(), order.getCustomerId());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("pending", response.getBody());
+    }
+
+    @Test
+    public void testGetOrderStatusUnauthorized1() {
+        Mockito.when(authenticationService.isCustomer(10L)).thenReturn(false);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(11L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusUnauthorized2() {
+        Mockito.when(authenticationService.isCustomer(10L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(11L, 10L)).thenReturn(false);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(11L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusNull() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+
+        Mockito.when(authenticationService.isCustomer(order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(order.getOrderId(), order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.getOrderById(order.getOrderId())).thenReturn(order);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(order.getOrderId(), order.getCustomerId());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusNotFound() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<String> response = orderController.getOrderStatus(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusError() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new RuntimeException());
+
+        ResponseEntity<String> response = orderController.getOrderStatus(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
 }

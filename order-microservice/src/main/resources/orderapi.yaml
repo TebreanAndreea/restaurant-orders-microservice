@@ -783,6 +783,7 @@ paths:
           required: true
           schema:
             type: integer
+            format: int64
         - name: userId
           in: path
           description: ID of user who made the order
@@ -796,10 +797,10 @@ paths:
           content:
             application/json:
               schema:
-                type: integer
+                type: string
             application/xml:
               schema:
-                type: integer
+                type: string
         '404':
           description: Order id not found
         '401':
