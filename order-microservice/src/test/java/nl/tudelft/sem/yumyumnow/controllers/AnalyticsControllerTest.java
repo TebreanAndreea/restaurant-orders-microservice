@@ -75,6 +75,19 @@ public class AnalyticsControllerTest {
     }
 
     @Test
+    public void testGetOrderRatingInternalError() {
+        Order order = new Order();
+        order.setOrderId(11L);
+        order.setRatingId(10L);
+
+        Mockito.when(orderService.getOrderById(11L)).thenReturn(order);
+        Mockito.when(analyticsService.getRatingById(10L)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Rating> response = analyticsController.getOrderRating(11L);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
     void testGetAveragePrice() {
         Long vendorId = 1L;
         Double average = 43.5;

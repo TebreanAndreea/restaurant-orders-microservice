@@ -3,6 +3,7 @@ package nl.tudelft.sem.yumyumnow.services;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -15,10 +16,15 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import java.util.stream.Stream;
+import javax.swing.text.html.Option;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
+import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
+import nl.tudelft.sem.yumyumnow.database.TestVendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
+import nl.tudelft.sem.yumyumnow.model.Rating;
+import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -29,8 +35,11 @@ import org.springframework.lang.Nullable;
 public class OrderServiceTest {
 
     private TestOrderRepository orderRepository;
-    private OrderService orderService;
+    private TestVendorRepository vendorRepository;
 
+    private TestRatingRepository ratingRepository;
+    private OrderService orderService;
+    private VendorService vendorService;
     private CustomerService userService;
 
     /**
@@ -40,8 +49,11 @@ public class OrderServiceTest {
     @BeforeEach
     public void setup() {
         this.orderRepository = new TestOrderRepository();
+        this.vendorRepository = new TestVendorRepository();
+        this.ratingRepository = new TestRatingRepository();
         this.userService = mock(CustomerService.class);
         this.orderService = new OrderService(this.orderRepository, this.userService);
+        this.vendorService = new VendorService(this.vendorRepository, this.userService, this.orderService);
     }
 
     @Test
@@ -56,8 +68,11 @@ public class OrderServiceTest {
 
     @Test
     public void testAddOrder() {
+        Location location = new Location();
+        location.setLatitude(83.56);
+        location.setLongitude(23.34);
         when(userService.getDefaultHomeAddress(1L))
-            .thenReturn(new Location());
+            .thenReturn(location);
         Order order = this.orderService.createNewOrder(1L, 14L);
 
         assertEquals(1, this.orderRepository.getMethodCalls().size());
@@ -66,6 +81,23 @@ public class OrderServiceTest {
         Order storedOrder = this.orderService.getOrderById(1L);
         assertEquals(order.getCustomerId(), storedOrder.getCustomerId());
         assertEquals(order.getVendorId(), storedOrder.getVendorId());
+        assertEquals(order.getLocation(), storedOrder.getLocation());
+        assertNotNull(storedOrder.getLocation());
+    }
+
+    @Test
+    public void testAddOrderNullLocation() {
+        when(userService.getDefaultHomeAddress(1L))
+            .thenReturn(null);
+        Order order = this.orderService.createNewOrder(1L, 14L);
+
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("save", this.orderRepository.getMethodCalls().get(0));
+
+        Order storedOrder = this.orderService.getOrderById(1L);
+        assertEquals(order.getCustomerId(), storedOrder.getCustomerId());
+        assertEquals(order.getVendorId(), storedOrder.getVendorId());
+        assertNull(storedOrder.getLocation());
     }
 
     /**
@@ -202,6 +234,7 @@ public class OrderServiceTest {
         assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
         assertEquals(modifiedOrder.getCustomerId(), 5L);
         assertEquals(modifiedOrder.getVendorId(), 9L);
+        assertEquals(modifiedOrder.getOrderId(), order.getOrderId());
         assertNotEquals(modifiedOrder.getCustomerId(), 1L);
         assertNotEquals(modifiedOrder.getVendorId(), 14L);
     }
@@ -234,6 +267,7 @@ public class OrderServiceTest {
         this.orderRepository.save(order);
         assertEquals(Order.StatusEnum.PREPARING, this.orderService.getOrderById(998L).getStatus());
         this.orderService.setOrderStatus(998L, Order.StatusEnum.ON_TRANSIT);
+        assertTrue(this.orderService.setOrderStatus(998L, Order.StatusEnum.ON_TRANSIT));
         assertEquals(Order.StatusEnum.ON_TRANSIT, this.orderService.getOrderById(998L).getStatus());
     }
 
@@ -323,12 +357,18 @@ public class OrderServiceTest {
         Order saved = this.orderService.getOrderById(11L);
         if (status != null) {
             assertEquals(status, saved.getStatus());
+        } else {
+            assertEquals(order.getStatus(), saved.getStatus());
         }
         if (newLoc != null) {
             assertEquals(newLoc, saved.getLocation());
+        } else {
+            assertEquals(order.getLocation(), saved.getLocation());
         }
         if (time != null) {
             assertEquals(time, saved.getTime());
+        } else {
+            assertEquals(order.getTime(), saved.getTime());
         }
         if (dishes != null) {
             assertEquals(dishes.get(0), saved.getDishes().get(0));
@@ -473,5 +513,41 @@ public class OrderServiceTest {
         assertEquals(1, this.orderRepository.getMethodCalls().size());
         assertEquals("existsById", this.orderRepository.getMethodCalls().get(0));
         assertEquals(Optional.empty(), retrievedOrder);
+    }
+
+    @Test
+    public void testGetAllRatingsForVendorNoOrders() {
+        Vendor vendor = new Vendor();
+        vendor.setName("Pizza Hut");
+        vendorRepository.save(vendor);
+
+        List<Long> getAllRatings = orderService.getAllRatingsForVendor(vendor.getId());
+        assertEquals(1, this.orderRepository.getMethodCalls().size());
+        assertEquals("findAll", this.orderRepository.getMethodCalls().get(0));
+        assertNull(getAllRatings);
+    }
+
+    @Test
+    public void testGetAllRatingsForVendor() {
+        Vendor vendor = new Vendor();
+        vendor.setName("Pizza Hut");
+        vendorRepository.save(vendor);
+
+        Rating rating = new Rating();
+        rating.setComment("Good");
+        rating.setGrade(5L);
+        ratingRepository.save(rating);
+
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setVendorId(vendor.getId());
+        order.setRatingId(rating.getId());
+        orderRepository.save(order);
+
+        List<Long> getAllRatings = orderService.getAllRatingsForVendor(vendor.getId());
+        assertEquals(2, this.orderRepository.getMethodCalls().size());
+        assertEquals("save", this.orderRepository.getMethodCalls().get(0));
+        assertEquals(0, getAllRatings.get(0));
+        assertEquals(1, getAllRatings.size());
     }
 }

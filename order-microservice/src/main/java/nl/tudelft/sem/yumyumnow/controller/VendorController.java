@@ -157,9 +157,7 @@ public class VendorController implements VendorApi {
                     || location.getLongitude() < -180 || location.getLongitude() > 180) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            if (filter == null) {
-                filter = "";
-            }
+            filter = filter == null ? "" : filter;
 
             if (radius == null || radius < 0) {
                 radius = 1000;
@@ -185,7 +183,7 @@ public class VendorController implements VendorApi {
     public ResponseEntity<Void> modifyDishFromVendor(Long dishId, Long vendorId, Dish dish) {
         try {
             if (authenticationService.isVendor(vendorId)) {
-                if (dishId == null || dishId <= 0) {
+                if (dishId == null || dishId < 0) {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
 
