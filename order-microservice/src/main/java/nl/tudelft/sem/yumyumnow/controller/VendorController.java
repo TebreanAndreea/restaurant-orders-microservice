@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.controller;
 
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.VendorApi;
 import nl.tudelft.sem.yumyumnow.database.VendorRepository;
@@ -64,6 +65,33 @@ public class VendorController implements VendorApi {
     }
 
     @Override
+    public ResponseEntity<Void> removeDishFromVendor(Long dishId, Long vendorId) {
+        try {
+            Optional<Dish> optionalDish = dishService.getDishById(dishId);
+            Vendor vendor = vendorService.getVendorById(vendorId);
+            Dish dish;
+
+            if (optionalDish.isPresent()) {
+                dish = optionalDish.get();
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+
+            boolean removed = vendorService.removeDishFromVendor(dish, vendor);
+
+            if (!removed) {
+                throw new RuntimeException();
+            }
+
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<List<Dish>> getVendorDishes(Long vendorId, Long customerId) {
         if (this.authenticationService.isCustomer(customerId) && this.authenticationService.isVendor(vendorId)) {
             List<Dish> dishes = vendorService.getVendorDishesforCustomer(vendorId, customerId);
@@ -96,6 +124,18 @@ public class VendorController implements VendorApi {
     }
 
     @Override
+    public ResponseEntity<Vendor> getVendor(Long vendorId) {
+        try {
+            Vendor vendor = vendorService.getVendorById(vendorId);
+            return ResponseEntity.ok(vendor);
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (RuntimeException e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     public ResponseEntity<List<Vendor>> getAllVendors(String filter) {
         try {
             if (filter == null || filter.isEmpty()) {
@@ -117,9 +157,7 @@ public class VendorController implements VendorApi {
                     || location.getLongitude() < -180 || location.getLongitude() > 180) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
-            if (filter == null) {
-                filter = "";
-            }
+            filter = filter == null ? "" : filter;
 
             if (radius == null || radius < 0) {
                 radius = 1000;
@@ -145,7 +183,7 @@ public class VendorController implements VendorApi {
     public ResponseEntity<Void> modifyDishFromVendor(Long dishId, Long vendorId, Dish dish) {
         try {
             if (authenticationService.isVendor(vendorId)) {
-                if (dishId == null || dishId <= 0) {
+                if (dishId == null || dishId < 0) {
                     return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
                 }
 

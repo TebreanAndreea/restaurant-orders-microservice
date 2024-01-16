@@ -9,10 +9,12 @@ import java.util.List;
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.controller.AdminController;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
+import nl.tudelft.sem.yumyumnow.services.CustomerService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
@@ -28,6 +30,7 @@ public class AdminControllerTest {
     private AuthenticationService authenticationService;
     private CompletionFactory orderCompletionService;
     private AdminController adminController;
+    private CustomerService customerService;
 
     private final OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
         @Override
@@ -43,7 +46,9 @@ public class AdminControllerTest {
     public void setup() {
         this.orderService = Mockito.mock(OrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
-        this.adminController = new AdminController(orderService, authenticationService, orderCompletionService);
+        this.customerService = Mockito.mock(CustomerService.class);
+        this.adminController = new AdminController(orderService, authenticationService,
+            orderCompletionService, customerService);
     }
 
     /**
@@ -81,7 +86,8 @@ public class AdminControllerTest {
         ResponseEntity<Void> statusCode = adminController.removeOrder(2L, 100L);
         assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
         this.orderCompletionService = Mockito.mock(CompletionFactory.class);
-        this.adminController = new AdminController(orderService, authenticationService, orderCompletionService);
+        this.adminController = new AdminController(orderService, authenticationService,
+            orderCompletionService, customerService);
     }
 
     /**
@@ -136,6 +142,59 @@ public class AdminControllerTest {
         assertEquals(HttpStatus.OK, adminController.getAllOrders(101L).getStatusCode());
     }
 
+    @Test
+    public void testGetOrder() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(order, response.getBody());
+    }
+
+    @Test
+    public void testGetOrderUnauthorized() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(false);
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderNotFound() {
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderError() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
     /**
      * Tests the modifyOrderAdmin method with invalid admin ID.
      */
@@ -184,5 +243,123 @@ public class AdminControllerTest {
         ResponseEntity<Void> orderReceived = adminController.updateOrder(2L, 100L, new Order());
         assertNotNull(orderReceived);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTestUnauthorized() {
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isVendor(2L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(1L)).thenReturn(true);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.UNAUTHORIZED, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTestUnauthorized2() {
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(2L)).thenReturn(false);
+        Mockito.when(this.authenticationService.isCustomer(1L)).thenReturn(true);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.UNAUTHORIZED, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTestUnauthorized3() {
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(2L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(1L)).thenReturn(false);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(2L, 1L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.UNAUTHORIZED, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTestError() {
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
+        Mockito.when(this.customerService.getCustomer(2L)).thenThrow(RuntimeException.class);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTesNotFound() {
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
+        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(null);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.NOT_FOUND, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClienNullOrders() {
+        Customer customer = new Customer();
+        customer.setPastOrders(null);
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
+        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.NOT_FOUND, orderReceived.getStatusCode());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClienZeroOrders() {
+        Order order1 = new Order();
+        order1.setVendorId(12L);
+        Order order2 = new Order();
+        order2.setVendorId(13L);
+        Order order3 = new Order();
+        order3.setVendorId(14L);
+        List<Order> orders = List.of(order1, order2, order3);
+        Customer customer = new Customer();
+        customer.setPastOrders(orders);
+
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
+        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.OK, orderReceived.getStatusCode());
+        assertEquals(new ArrayList<>(), orderReceived.getBody());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTest() {
+        Order order1 = new Order();
+        order1.setVendorId(1L);
+        Order order2 = new Order();
+        order2.setVendorId(1L);
+        Order order3 = new Order();
+        order3.vendorId(14L);
+        List<Order> orders = List.of(order1, order2, order3);
+        Customer customer = new Customer();
+        customer.setPastOrders(orders);
+
+        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
+        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
+        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
+
+        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
+        List<Order> answer = List.of(order1, order2);
+        assertNotNull(orderReceived);
+        assertEquals(HttpStatus.OK, orderReceived.getStatusCode());
+        assertEquals(answer, orderReceived.getBody());
     }
 }

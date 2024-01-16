@@ -9,6 +9,7 @@ import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
@@ -17,7 +18,6 @@ import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
-import org.aspectj.weaver.ast.Or;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -520,5 +520,267 @@ public class OrderControllerTest {
 
         ResponseEntity<Void> statusCode = orderController.deleteOrder(2L, 100L);
         assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
+    }
+
+    @Test
+    public void testDeleteDishFromOrderNotFound() {
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(false);
+        Dish d = new Dish();
+        assertEquals(HttpStatus.NOT_FOUND, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderNotAuthorized() {
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(false);
+        Dish d = new Dish();
+        assertEquals(HttpStatus.UNAUTHORIZED, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderOk() {
+        Dish d = new Dish();
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
+        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(true);
+        assertEquals(HttpStatus.OK, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+
+    @Test
+    public void testDeleteDishFromOrderError() {
+        Dish d = new Dish();
+        Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
+        Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
+        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(false);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
+                .removeDishFromOrder(200L, 12L, d).getStatusCode());
+    }
+    
+    @Test
+    public void testSetOrderRequirements() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.of(modifiedOrder));
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsUnauthorized1() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsUnauthorized2() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Mockito.when(authenticationService.isCustomer(100L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 100L)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsUpdateEmpty() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.empty());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsOrderNotFound() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderRequirementsServerError() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setSpecialRequirenments("No hot sauce.");
+
+        Order modifiedOrder = new Order();
+        modifiedOrder.setOrderId(order.getOrderId());
+        modifiedOrder.setCustomerId(order.getCustomerId());
+        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
+
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatus() {
+        Long orderId = 1L;
+        Long userId = 100L;
+        String body = "accepted";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(true);
+        Mockito.when(orderService.setOrderStatus(orderId, Order.StatusEnum.fromValue(body))).thenReturn(true);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatusUnauthorized() {
+        Long orderId = 1L;
+        Long userId = 200L;
+        String body = "accepted";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(false);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testSetOrderStatusInternalServerError() {
+        Long orderId = 1L;
+        Long userId = 300L;
+        String body = "invalid";
+
+        Mockito.when(authenticationService.isVendor(userId)).thenReturn(true);
+
+        ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
+
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatus() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+        order.setStatus(Order.StatusEnum.PENDING);
+
+        Mockito.when(authenticationService.isCustomer(order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(order.getOrderId(), order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.getOrderById(order.getOrderId())).thenReturn(order);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(order.getOrderId(), order.getCustomerId());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals("pending", response.getBody());
+    }
+
+    @Test
+    public void testGetOrderStatusUnauthorized1() {
+        Mockito.when(authenticationService.isCustomer(10L)).thenReturn(false);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(11L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusUnauthorized2() {
+        Mockito.when(authenticationService.isCustomer(10L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(11L, 10L)).thenReturn(false);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(11L, 10L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusNull() {
+        Order order = new Order();
+        order.setOrderId(10L);
+        order.setCustomerId(11L);
+
+        Mockito.when(authenticationService.isCustomer(order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(order.getOrderId(), order.getCustomerId())).thenReturn(true);
+        Mockito.when(orderService.getOrderById(order.getOrderId())).thenReturn(order);
+
+        ResponseEntity<String> response = orderController.getOrderStatus(order.getOrderId(), order.getCustomerId());
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusNotFound() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<String> response = orderController.getOrderStatus(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderStatusError() {
+        Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
+        Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new RuntimeException());
+
+        ResponseEntity<String> response = orderController.getOrderStatus(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
     }
 }

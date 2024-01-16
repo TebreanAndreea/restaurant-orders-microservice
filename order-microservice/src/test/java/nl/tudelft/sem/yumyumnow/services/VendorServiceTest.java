@@ -269,6 +269,42 @@ public class VendorServiceTest {
     }
 
     @Test
+    public void testRemoveDish() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+
+        Dish d1 = new Dish().id(1L).name("Dumplings");
+        Dish d2 = new Dish().id(2L).name("Schnitzel");
+        List<Dish> dishes = new ArrayList<>(List.of(d1, d2));
+
+        vendor.setDishes(dishes);
+
+        boolean result = vendorService.removeDishFromVendor(d1, vendor);
+
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("save", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(true, result);
+    }
+
+    @Test
+    public void testRemoveDishNotPresent() {
+        Vendor vendor = new Vendor();
+        vendor.setId(10L);
+
+        Dish d1 = new Dish().id(1L).name("Dumplings");
+        Dish d2 = new Dish().id(2L).name("Schnitzel");
+        List<Dish> dishes = new ArrayList<>(List.of(d2));
+
+        vendor.setDishes(dishes);
+
+        boolean result = vendorService.removeDishFromVendor(d1, vendor);
+
+        assertEquals(1, this.vendorRepository.getMethodCalls().size());
+        assertEquals("save", this.vendorRepository.getMethodCalls().get(0));
+        assertEquals(true, result);
+    }
+
+    @Test
     public void testGetAllVendors() {
         Vendor vendor1 = this.vendorService.createNewVendor("Vendor1");
         Vendor vendor2 = this.vendorService.createNewVendor("Vendor2");

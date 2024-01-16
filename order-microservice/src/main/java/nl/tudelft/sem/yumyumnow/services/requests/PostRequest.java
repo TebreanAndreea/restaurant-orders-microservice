@@ -1,11 +1,13 @@
 package nl.tudelft.sem.yumyumnow.services.requests;
 
+import lombok.Getter;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.client.RestTemplate;
 
+@Getter
 public class PostRequest extends Request {
 
     private final Object body;
@@ -31,12 +33,22 @@ public class PostRequest extends Request {
      */
     @Override
     public <T> ResponseEntity<T> send(Class<T> returnType) {
-        HttpHeaders httpHeaders = new HttpHeaders();
-        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<Object> httpEntity = new HttpEntity<>(this.body, httpHeaders);
+        HttpEntity<Object> httpEntity = createRequestEntity(this.body);
         if (this.parameters.isEmpty()) {
             return this.restTemplate.postForEntity(this.url, httpEntity, returnType);
         }
         return this.restTemplate.postForEntity(this.url, httpEntity, returnType, this.parameters);
+    }
+
+    /**
+     * Creates a Request entity with a body in the JSON format.
+     *
+     * @param body the request body
+     * @return the http entity containing the body
+     */
+    public HttpEntity<Object> createRequestEntity(Object body) {
+        HttpHeaders httpHeaders = new HttpHeaders();
+        httpHeaders.setContentType(MediaType.APPLICATION_JSON);
+        return new HttpEntity<>(body, httpHeaders);
     }
 }

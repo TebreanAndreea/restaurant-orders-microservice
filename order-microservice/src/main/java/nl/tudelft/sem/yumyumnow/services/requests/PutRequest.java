@@ -7,7 +7,7 @@ import org.springframework.web.client.RestTemplate;
 
 public class PutRequest extends Request {
 
-    private Object body;
+    private final Object body;
 
     /**
      * Creates a new PUT Request object.
