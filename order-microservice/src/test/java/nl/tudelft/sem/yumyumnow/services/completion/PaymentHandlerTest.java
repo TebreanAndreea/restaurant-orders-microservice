@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class PaymentHandlerTest {
 
     private OrderPaymentHandler paymentHandler;
-    private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
+    private final BaseOrderCompletionHandler stubHandler = new BaseOrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
             return order.getStatus() == Order.StatusEnum.ACCEPTED ? Order.StatusEnum.ON_TRANSIT :

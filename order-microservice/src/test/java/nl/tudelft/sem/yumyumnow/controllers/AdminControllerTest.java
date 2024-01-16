@@ -3,21 +3,16 @@ package nl.tudelft.sem.yumyumnow.controllers;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import nl.tudelft.sem.yumyumnow.controller.AdminController;
-import nl.tudelft.sem.yumyumnow.controller.OrderController;
 import nl.tudelft.sem.yumyumnow.model.Customer;
-import nl.tudelft.sem.yumyumnow.model.Dish;
-import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.CustomerService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
-import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -31,13 +26,6 @@ public class AdminControllerTest {
     private CompletionFactory orderCompletionService;
     private AdminController adminController;
     private CustomerService customerService;
-
-    private final OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
-        @Override
-        public Order.StatusEnum handleOrderCompletion(Order order) {
-            return Order.StatusEnum.PREPARING;
-        }
-    };
 
     /**
      * Setup of the mocked objects before each test.

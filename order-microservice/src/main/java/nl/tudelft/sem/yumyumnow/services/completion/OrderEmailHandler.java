@@ -1,9 +1,8 @@
 package nl.tudelft.sem.yumyumnow.services.completion;
 
 import nl.tudelft.sem.yumyumnow.model.Order;
-import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 
-public class OrderEmailHandler extends OrderCompletionHandler {
+public class OrderEmailHandler extends BaseOrderCompletionHandler {
 
     /**
      * Initializes an instance of the Email Handler.
@@ -11,7 +10,8 @@ public class OrderEmailHandler extends OrderCompletionHandler {
      * @param nextHandler the next Order completion handler. Can be null.
      */
     public OrderEmailHandler(OrderCompletionHandler nextHandler) {
-        super(nextHandler);
+        super();
+        this.setNext(nextHandler);
     }
 
     /**

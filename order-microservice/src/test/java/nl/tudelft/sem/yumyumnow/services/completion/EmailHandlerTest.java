@@ -14,7 +14,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 public class EmailHandlerTest {
 
     private OrderEmailHandler emailHandler;
-    private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
+    private final BaseOrderCompletionHandler stubHandler = new BaseOrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
             return order.getStatus() == Order.StatusEnum.PREPARING ? Order.StatusEnum.ON_TRANSIT :
