@@ -11,6 +11,7 @@ import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.CustomerService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 public class AdminController implements AdminApi {
     private final OrderService orderService;
+    private final UpdatesOrderService updatesOrderService;
     private final AuthenticationService authenticationService;
     private final CompletionFactory orderCompletionService;
     private final CustomerService customerService;
@@ -32,9 +34,11 @@ public class AdminController implements AdminApi {
      * @param orderCompletionService a service creating the handlers for an order completion
      */
     @Autowired
-    public AdminController(OrderService orderService, AuthenticationService authenticationService,
-                           CompletionFactory orderCompletionService, CustomerService customerService) {
+    public AdminController(OrderService orderService, UpdatesOrderService updatesOrderService,
+                           AuthenticationService authenticationService, CompletionFactory orderCompletionService,
+                           CustomerService customerService) {
         this.orderService = orderService;
+        this.updatesOrderService = updatesOrderService;
         this.authenticationService = authenticationService;
         this.orderCompletionService = orderCompletionService;
         this.customerService = customerService;
@@ -117,7 +121,7 @@ public class AdminController implements AdminApi {
         if (!this.orderService.existsAtId(orderId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        Order modifiedOrder = this.orderService.modifyOrderAdmin(orderId, newOrder);
+        Order modifiedOrder = this.updatesOrderService.modifyOrderAdmin(orderId, newOrder);
 
         if (modifiedOrder == null) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
@@ -139,17 +143,8 @@ public class AdminController implements AdminApi {
         }
         try {
             Customer customer = this.customerService.getCustomer(customerId);
-            if (customer != null) {
-                List<Order> orders = customer.getPastOrders();
-                List<Order> orderFromVendor = new ArrayList<>();
-                if (orders == null) {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-                for (Order order : orders) {
-                    if (Objects.equals(order.getVendorId(), vendorId)) {
-                        orderFromVendor.add(order);
-                    }
-                }
+            List<Order> orderFromVendor = this.orderService.getListOfOrdersForVendorForClient(vendorId, customer);
+            if (orderFromVendor != null) {
                 return ResponseEntity.of(Optional.of(orderFromVendor));
             } else {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
