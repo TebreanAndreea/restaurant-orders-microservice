@@ -2,6 +2,7 @@ package nl.tudelft.sem.yumyumnow.controller;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.api.AdminApi;
@@ -11,7 +12,6 @@ import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.CustomerService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -75,6 +75,29 @@ public class AdminController implements AdminApi {
         } else {
             List<Order> allOrders = this.orderService.getAllOrders();
             return ResponseEntity.of(Optional.of(allOrders));
+        }
+    }
+
+    /**
+     * An admin can view any order in the system.
+     *
+     * @param orderId ID of order to be retrieved
+     * @param adminId ID of admin viewing the order
+     * @return the order to be viewed
+     */
+    @Override
+    public ResponseEntity<Order> getOrderAdmin(Long orderId, Long adminId) {
+        try {
+            if (authenticationService.isAdmin(adminId)) {
+                Order order = orderService.getOrderById(orderId);
+                return ResponseEntity.ok(order);
+            } else {
+                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+            }
+        } catch (NoSuchElementException e) {
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

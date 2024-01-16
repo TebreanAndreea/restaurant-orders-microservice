@@ -142,6 +142,59 @@ public class AdminControllerTest {
         assertEquals(HttpStatus.OK, adminController.getAllOrders(101L).getStatusCode());
     }
 
+    @Test
+    public void testGetOrder() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(order, response.getBody());
+    }
+
+    @Test
+    public void testGetOrderUnauthorized() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(false);
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.UNAUTHORIZED, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderNotFound() {
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new NoSuchElementException());
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(10L, 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+    }
+
+    @Test
+    public void testGetOrderError() {
+        Order order = new Order();
+        order.setOrderId(10L);
+
+        Mockito.when(authenticationService.isAdmin(11L)).thenReturn(true);
+        Mockito.when(orderService.getOrderById(10L)).thenThrow(new RuntimeException());
+
+        ResponseEntity<Order> response = adminController.getOrderAdmin(order.getOrderId(), 11L);
+
+        assertNotNull(response);
+        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+    }
+
     /**
      * Tests the modifyOrderAdmin method with invalid admin ID.
      */
