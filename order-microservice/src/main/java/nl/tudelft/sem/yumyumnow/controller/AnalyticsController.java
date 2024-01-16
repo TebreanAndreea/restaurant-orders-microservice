@@ -7,6 +7,7 @@ import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import nl.tudelft.sem.yumyumnow.services.AnalyticsService;
+import nl.tudelft.sem.yumyumnow.services.AnalyticsVendorService;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,6 +20,7 @@ public class AnalyticsController implements AnalyticsApi {
 
     private final OrderService orderService;
     private final AnalyticsService analyticsService;
+    private final AnalyticsVendorService analyticsVendorService;
     private final AuthenticationService authenticationService;
 
     /**
@@ -30,10 +32,11 @@ public class AnalyticsController implements AnalyticsApi {
      */
     @Autowired
     public AnalyticsController(OrderService orderService, AnalyticsService analyticsService,
-                               AuthenticationService authenticationService) {
+                               AuthenticationService authenticationService, AnalyticsVendorService analyticsVendorService) {
         this.orderService = orderService;
         this.analyticsService = analyticsService;
         this.authenticationService = authenticationService;
+        this.analyticsVendorService = analyticsVendorService;
     }
 
     @Override
@@ -62,7 +65,7 @@ public class AnalyticsController implements AnalyticsApi {
     public ResponseEntity<Double> getAveragePrice(Long vendorId) {
         if (this.authenticationService.isVendor(vendorId)) {
             try {
-                Double averagePrice = analyticsService.getAverageVendorPrice(vendorId);
+                Double averagePrice = analyticsVendorService.getAverageVendorPrice(vendorId);
 
                 if (averagePrice != null) {
                     return ResponseEntity.ok(averagePrice);
@@ -88,7 +91,7 @@ public class AnalyticsController implements AnalyticsApi {
     public ResponseEntity<Double> getAverageRating(Long vendorId) {
         if (this.authenticationService.isVendor(vendorId)) {
             try {
-                Double averageRating = analyticsService.getAverageVendorRating(vendorId);
+                Double averageRating = analyticsVendorService.getAverageVendorRating(vendorId);
 
                 if (averageRating != null) {
                     return ResponseEntity.ok(averageRating);
@@ -113,7 +116,7 @@ public class AnalyticsController implements AnalyticsApi {
     public ResponseEntity<Dish> getPopularDish(Long vendorId) {
         if (authenticationService.isVendor(vendorId)) {
             try {
-                Dish popular = analyticsService.getPopularDish(vendorId);
+                Dish popular = analyticsVendorService.getPopularDish(vendorId);
 
                 if (popular == null) {
                     return new ResponseEntity<>(HttpStatus.NOT_FOUND);
@@ -138,7 +141,7 @@ public class AnalyticsController implements AnalyticsApi {
     public ResponseEntity<Double> getOrdersPerDay(Long vendorId) {
         if (authenticationService.isVendor(vendorId)) {
             try {
-                Double average = analyticsService.averageOrdersPerDay(vendorId);
+                Double average = analyticsVendorService.averageOrdersPerDay(vendorId);
 
                 if (average != null) {
                     return ResponseEntity.ok(average);

@@ -1,8 +1,12 @@
 package nl.tudelft.sem.yumyumnow.services;
 
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -405,6 +409,88 @@ public class VendorServiceTest {
         assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(2));
         assertEquals(vendor1, vendors.get(0));
         assertEquals(1, vendors.size());
+    }
+
+    @Test
+    public void testSaveDishToVendor() {
+        Vendor vendor = new Vendor();
+        Long id = this.vendorRepository.count();
+        vendor.setId(id);
+        this.vendorRepository.save(vendor);
+
+        Dish savedDish = new Dish();
+
+        vendorService.saveDishToVendor(id, savedDish);
+
+        assertEquals("save", this.vendorRepository.getMethodCalls().get(1));
+        assertTrue(vendor.getDishes().contains(savedDish));
+    }
+
+    @Test
+    public void testSaveDishToVendorNotVendor() {
+        Vendor vendor = new Vendor();
+        Long id = this.vendorRepository.count();
+        vendor.setId(id);
+
+        Dish savedDish = new Dish();
+
+        vendorService.saveDishToVendor(id, savedDish);
+
+        assertNotEquals("save", this.vendorRepository.getMethodCalls().get(0));
+    }
+
+    @Test
+    public void isInvalidLocationTrue() {
+        Location validLocation = new Location(2L, -91.7128, -74.0060);
+
+        boolean result = vendorService.isInvalidLocation(validLocation);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void isInvalidLocation90() {
+        Location invalidLatitude = new Location(1L, -90.0, -74.0060);
+
+        boolean result = vendorService.isInvalidLocation(invalidLatitude);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void isInvalidLocationNull() {
+        Location invalid = null;
+
+        boolean result = vendorService.isInvalidLocation(invalid);
+
+        assertTrue(result);
+    }
+
+    @Test
+    public void isInvalidLocationMore90() {
+        Location invalidLatitude = new Location(1L, 90.0, -74.0060);
+
+        boolean result = vendorService.isInvalidLocation(invalidLatitude);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void isInvalidLocationLess180() {
+        Location invalidLongitude = new Location(1L, 80.0, -180.0);
+
+        boolean result = vendorService.isInvalidLocation(invalidLongitude);
+
+        assertFalse(result);
+    }
+
+    @Test
+    public void isInvalidLocationMore180() {
+        Location invalidLongitude = new Location(1L, 80.0, 180.0);
+
+        boolean result = vendorService.isInvalidLocation(invalidLongitude);
+
+        assertFalse(result);
     }
 
 }
