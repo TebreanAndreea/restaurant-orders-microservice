@@ -20,6 +20,7 @@ import javax.swing.text.html.Option;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
 import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
 import nl.tudelft.sem.yumyumnow.database.TestVendorRepository;
+import nl.tudelft.sem.yumyumnow.model.Customer;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
@@ -30,6 +31,9 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
+import org.mockito.Mockito;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.lang.Nullable;
 
 public class OrderServiceTest {
@@ -219,39 +223,6 @@ public class OrderServiceTest {
         assertEquals(storedOrder.size(), 0);
     }
 
-    /**
-     * Tests the modifyOrderAdmin method when the orderId is found.
-     */
-    @Test
-    public void modifyOrderAdmin() {
-        Order order = this.orderService.createNewOrder(1L, 14L);
-        Order newOrder = new Order();
-        newOrder.setCustomerId(5L);
-        newOrder.setVendorId(9L);
-
-        Order modifiedOrder = this.orderService.modifyOrderAdmin(order.getOrderId(), newOrder);
-        assertEquals(3, this.orderRepository.getMethodCalls().size());
-        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
-        assertEquals(modifiedOrder.getCustomerId(), 5L);
-        assertEquals(modifiedOrder.getVendorId(), 9L);
-        assertEquals(modifiedOrder.getOrderId(), order.getOrderId());
-        assertNotEquals(modifiedOrder.getCustomerId(), 1L);
-        assertNotEquals(modifiedOrder.getVendorId(), 14L);
-    }
-
-    /**
-     * Tests the modifyOrderAdmin method when the orderId is not found.
-     */
-    @Test
-    public void modifyOrderAdminNotFound() {
-        Order order = this.orderService.createNewOrder(1L, 14L);
-
-        Order modifiedOrder = this.orderService.modifyOrderAdmin(2L, order);
-        assertEquals(2, this.orderRepository.getMethodCalls().size());
-        assertEquals("findById", this.orderRepository.getMethodCalls().get(1));
-        assertNull(modifiedOrder);
-    }
-
     @Test
     public void testOrderExists() {
         Order order = new Order().orderId(12L);
@@ -259,16 +230,6 @@ public class OrderServiceTest {
         assertTrue(this.orderService.existsAtId(12L));
         assertFalse(this.orderService.existsAtId(20L));
         assertEquals("existsById", this.orderRepository.getMethodCalls().get(2));
-    }
-
-    @Test
-    public void testSetOrderStatus() {
-        Order order = new Order().orderId(998L).status(Order.StatusEnum.PREPARING);
-        this.orderRepository.save(order);
-        assertEquals(Order.StatusEnum.PREPARING, this.orderService.getOrderById(998L).getStatus());
-        this.orderService.setOrderStatus(998L, Order.StatusEnum.ON_TRANSIT);
-        assertTrue(this.orderService.setOrderStatus(998L, Order.StatusEnum.ON_TRANSIT));
-        assertEquals(Order.StatusEnum.ON_TRANSIT, this.orderService.getOrderById(998L).getStatus());
     }
 
     /**
@@ -336,83 +297,6 @@ public class OrderServiceTest {
         assertNull(modifiedOrder);
     }
 
-    /**
-     * Tests the order modifications with the following attributes.
-     *
-     * @param dishes the new dish list
-     * @param newLoc the new delivery location
-     * @param status the new order status
-     * @param time the new delivery time
-     */
-    @ParameterizedTest
-    @MethodSource("generateOrderModifications")
-    public void modifyOrderSuccess(@Nullable List<Dish> dishes, @Nullable Location newLoc,
-                                   @Nullable Order.StatusEnum status, @Nullable OffsetDateTime time) {
-        Order order = new Order().orderId(11L).vendorId(12L).customerId(13L).location(new Location(1L, 0.0D, 0.0D))
-                .price(14.5D).dishes(new ArrayList<>()).status(Order.StatusEnum.PREPARING).time(OffsetDateTime.MIN);
-
-        this.orderRepository.save(order);
-        boolean success = this.orderService.updateOrder(11L, dishes, newLoc, status, time);
-        assertTrue(success);
-        Order saved = this.orderService.getOrderById(11L);
-        if (status != null) {
-            assertEquals(status, saved.getStatus());
-        } else {
-            assertEquals(order.getStatus(), saved.getStatus());
-        }
-        if (newLoc != null) {
-            assertEquals(newLoc, saved.getLocation());
-        } else {
-            assertEquals(order.getLocation(), saved.getLocation());
-        }
-        if (time != null) {
-            assertEquals(time, saved.getTime());
-        } else {
-            assertEquals(order.getTime(), saved.getTime());
-        }
-        if (dishes != null) {
-            assertEquals(dishes.get(0), saved.getDishes().get(0));
-        }
-    }
-
-    /**
-     * Generates the order modification test arguments.
-     * It contains a few null value to test that it is not updating them.
-     *
-     * @return the order modification test arguments
-     */
-    public static Stream<Arguments> generateOrderModifications() {
-        return Stream.of(Arguments.of(List.of(new Dish().id(11L).name("Pizza")), new Location(3L, 120.0D, 32.0D),
-                Order.StatusEnum.DELIVERED, OffsetDateTime.now()),
-                Arguments.of(List.of(new Dish().id(11L).name("Pizza")), new Location(3L, 120.0D, 32.0D),
-                        Order.StatusEnum.PREPARING, null),
-                Arguments.of(List.of(new Dish().id(11L).name("Pizza")), new Location(3L, 120.0D, 32.0D),
-                        null, null),
-                Arguments.of(List.of(new Dish().id(11L).name("Burger")), null,
-                        null, OffsetDateTime.now()),
-                Arguments.of(null, new Location(3L, 120.0D, 32.0D),
-                        Order.StatusEnum.DELIVERED, null),
-                Arguments.of(null, null, null, null));
-    }
-
-    @Test
-    public void modifyOrderNotFound() {
-        Order order = new Order().orderId(11L).vendorId(12L).customerId(13L).location(new Location(1L, 0.0D, 0.0D))
-                .price(14.5D).dishes(new ArrayList<>()).status(Order.StatusEnum.PREPARING).time(OffsetDateTime.MIN);
-
-        this.orderRepository.save(order);
-
-        Dish dish = new Dish().id(20L).name("Fish and Chips").allergens(List.of("gluten", "fish"));
-        Location newLoc = new Location(2L, 180.0D, 180.0D);
-        Order.StatusEnum status = Order.StatusEnum.ACCEPTED;
-        OffsetDateTime time = OffsetDateTime.now();
-
-        assertThrows(NoSuchElementException.class, () -> {
-            this.orderService.updateOrder(15L, List.of(dish), newLoc, status, time);
-        }, "No order exists with id 15");
-
-    }
-
     @Test
     public void testUserNotAssociatedWithOrder() {
         this.orderService.createNewOrder(11L, 13L).setOrderId(20L);
@@ -451,71 +335,6 @@ public class OrderServiceTest {
     }
 
     @Test
-    public void testRemoveDishNonExistingOrder() {
-        assertThrows(NoSuchElementException.class, () ->
-                this.orderService.removeDishFromOrder(12L, new Dish()));
-    }
-
-    @Test
-    public void testRemoveDishNotPresent() {
-        Dish d1 = new Dish().id(1L).name("Pizza Regina");
-        Dish d2 = new Dish().id(2L).name("Pizza Hawaii");
-        Order order = new Order().orderId(15L).dishes(new ArrayList<>(List.of(d1)));
-        this.orderRepository.save(order);
-        assertTrue(order.getDishes().stream().noneMatch(x -> x.getId().equals(2L)));
-        assertTrue(this.orderService.removeDishFromOrder(15L, d2));
-        assertEquals(1, this.orderService.getOrderById(15L).getDishes().size());
-    }
-
-    @Test
-    public void testRemoveDishPresent() {
-        Dish d1 = new Dish().id(1L).name("Pizza Regina");
-        Dish d2 = new Dish().id(2L).name("Pizza Hawaii");
-        Order order = new Order().orderId(15L).dishes(new ArrayList<>(List.of(d1, d2)));
-        this.orderRepository.save(order);
-        assertEquals(2, order.getDishes().size());
-        assertTrue(this.orderService.removeDishFromOrder(15L, d2));
-        assertEquals(1, this.orderService.getOrderById(15L).getDishes().size());
-    }
-
-    @Test
-    public void testModifyRequirements() {
-        Order order = new Order();
-        order.setOrderId(10L);
-        order.setSpecialRequirenments("No hot sauce.");
-
-        orderRepository.save(order);
-
-        assertEquals(1, this.orderRepository.getMethodCalls().size());
-        assertEquals("save", this.orderRepository.getMethodCalls().get(0));
-
-        Order modifiedOrder = new Order();
-        modifiedOrder.setOrderId(order.getOrderId());
-        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
-
-        Optional<Order> retrievedOrder = orderService.modifyOrderRequirements(modifiedOrder);
-
-        assertEquals(10L, retrievedOrder.get().getOrderId());
-        assertEquals("Tuna, no crust.", retrievedOrder.get().getSpecialRequirenments());
-        assertEquals(3, this.orderRepository.getMethodCalls().size());
-        assertEquals("existsById", this.orderRepository.getMethodCalls().get(1));
-        assertEquals("save", this.orderRepository.getMethodCalls().get(2));
-    }
-
-    @Test
-    public void testModifyRequirementsOrderNotFound() {
-        Order modifiedOrder = new Order();
-        modifiedOrder.setOrderId(10L);
-        modifiedOrder.setSpecialRequirenments("Tuna, no crust.");
-
-        Optional<Order> retrievedOrder = orderService.modifyOrderRequirements(modifiedOrder);
-
-        assertEquals(1, this.orderRepository.getMethodCalls().size());
-        assertEquals("existsById", this.orderRepository.getMethodCalls().get(0));
-        assertEquals(Optional.empty(), retrievedOrder);
-    }
-
-    @Test
     public void testGetAllRatingsForVendorNoOrders() {
         Vendor vendor = new Vendor();
         vendor.setName("Pizza Hut");
@@ -549,5 +368,55 @@ public class OrderServiceTest {
         assertEquals("save", this.orderRepository.getMethodCalls().get(0));
         assertEquals(0, getAllRatings.get(0));
         assertEquals(1, getAllRatings.size());
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTest() {
+        Order order1 = new Order();
+        order1.setVendorId(1L);
+        Order order2 = new Order();
+        order2.setVendorId(1L);
+        Order order3 = new Order();
+        order3.vendorId(14L);
+        List<Order> orders = List.of(order1, order2, order3);
+        Customer customer = new Customer();
+        customer.setPastOrders(orders);
+
+
+        List<Order> orderReceived = orderService.getListOfOrdersForVendorForClient(1L, customer);
+        List<Order> answer = List.of(order1, order2);
+        assertEquals(answer, orderReceived);
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClienZeroOrders() {
+        Order order1 = new Order();
+        order1.setVendorId(12L);
+        Order order2 = new Order();
+        order2.setVendorId(13L);
+        Order order3 = new Order();
+        order3.setVendorId(14L);
+        List<Order> orders = List.of(order1, order2, order3);
+        Customer customer = new Customer();
+        customer.setPastOrders(orders);
+
+
+        List<Order> orderReceived = orderService.getListOfOrdersForVendorForClient(1L, customer);
+        assertEquals(new ArrayList<>(), orderReceived);
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClienNullOrders() {
+        Customer customer = new Customer();
+        customer.setPastOrders(null);
+
+        List<Order> orderReceived = orderService.getListOfOrdersForVendorForClient(1L, customer);
+        assertNull(orderReceived);
+    }
+
+    @Test
+    public void getListOfOrdersForVendorForClientTesNullCustomer() {
+        List<Order> orderReceived = orderService.getListOfOrdersForVendorForClient(1L, null);
+        assertNull(orderReceived);
     }
 }

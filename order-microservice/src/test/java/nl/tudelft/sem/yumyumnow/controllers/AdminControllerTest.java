@@ -16,6 +16,7 @@ import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.CustomerService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.junit.jupiter.api.BeforeEach;
@@ -27,6 +28,7 @@ import org.springframework.http.ResponseEntity;
 public class AdminControllerTest {
 
     private OrderService orderService;
+    private UpdatesOrderService updatesOrderService;
     private AuthenticationService authenticationService;
     private CompletionFactory orderCompletionService;
     private AdminController adminController;
@@ -45,9 +47,10 @@ public class AdminControllerTest {
     @BeforeEach
     public void setup() {
         this.orderService = Mockito.mock(OrderService.class);
+        this.updatesOrderService = Mockito.mock(UpdatesOrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
         this.customerService = Mockito.mock(CustomerService.class);
-        this.adminController = new AdminController(orderService, authenticationService,
+        this.adminController = new AdminController(orderService, updatesOrderService, authenticationService,
             orderCompletionService, customerService);
     }
 
@@ -86,7 +89,7 @@ public class AdminControllerTest {
         ResponseEntity<Void> statusCode = adminController.removeOrder(2L, 100L);
         assertEquals(statusCode, new ResponseEntity<>(HttpStatus.NOT_FOUND));
         this.orderCompletionService = Mockito.mock(CompletionFactory.class);
-        this.adminController = new AdminController(orderService, authenticationService,
+        this.adminController = new AdminController(orderService, updatesOrderService, authenticationService,
             orderCompletionService, customerService);
     }
 
@@ -211,7 +214,8 @@ public class AdminControllerTest {
     @Test
     public void modifyOrderAdminNotFound() {
         Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
+        Mockito.when(this.updatesOrderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class)))
+            .thenReturn(null);
 
         assertEquals(HttpStatus.NOT_FOUND, adminController.updateOrder(100L, 100L, new Order()).getStatusCode());
     }
@@ -227,7 +231,8 @@ public class AdminControllerTest {
         order.setVendorId(4L);
         Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
         Mockito.when(this.orderService.existsAtId(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(order);
+        Mockito.when(this.updatesOrderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class)))
+            .thenReturn(order);
 
         ResponseEntity<Void> orderReceived = adminController.updateOrder(2L, 100L, new Order());
         assertNotNull(orderReceived);
@@ -238,7 +243,8 @@ public class AdminControllerTest {
     public void modifyOrderAdminInternalServerError() {
         Mockito.when(this.authenticationService.isAdmin(100L)).thenReturn(true);
         Mockito.when(this.orderService.existsAtId(Mockito.anyLong())).thenReturn(true);
-        Mockito.when(this.orderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class))).thenReturn(null);
+        Mockito.when(this.updatesOrderService.modifyOrderAdmin(Mockito.anyLong(), Mockito.any(Order.class)))
+            .thenReturn(null);
 
         ResponseEntity<Void> orderReceived = adminController.updateOrder(2L, 100L, new Order());
         assertNotNull(orderReceived);
@@ -296,25 +302,13 @@ public class AdminControllerTest {
         Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
         Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
         Mockito.when(this.customerService.getCustomer(2L)).thenReturn(null);
+        Mockito.when(this.orderService.getListOfOrdersForVendorForClient(1L, null)).thenReturn(null);
 
         ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
         assertNotNull(orderReceived);
         assertEquals(HttpStatus.NOT_FOUND, orderReceived.getStatusCode());
     }
 
-    @Test
-    public void getListOfOrdersForVendorForClienNullOrders() {
-        Customer customer = new Customer();
-        customer.setPastOrders(null);
-        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
-        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
-        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
-        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
-
-        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
-        assertNotNull(orderReceived);
-        assertEquals(HttpStatus.NOT_FOUND, orderReceived.getStatusCode());
-    }
 
     @Test
     public void getListOfOrdersForVendorForClienZeroOrders() {
@@ -332,34 +326,11 @@ public class AdminControllerTest {
         Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
         Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
         Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
+        Mockito.when(this.orderService.getListOfOrdersForVendorForClient(1L, customer)).thenReturn(orders);
 
         ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
         assertNotNull(orderReceived);
         assertEquals(HttpStatus.OK, orderReceived.getStatusCode());
-        assertEquals(new ArrayList<>(), orderReceived.getBody());
-    }
-
-    @Test
-    public void getListOfOrdersForVendorForClientTest() {
-        Order order1 = new Order();
-        order1.setVendorId(1L);
-        Order order2 = new Order();
-        order2.setVendorId(1L);
-        Order order3 = new Order();
-        order3.vendorId(14L);
-        List<Order> orders = List.of(order1, order2, order3);
-        Customer customer = new Customer();
-        customer.setPastOrders(orders);
-
-        Mockito.when(this.authenticationService.isAdmin(3L)).thenReturn(true);
-        Mockito.when(this.authenticationService.isVendor(1L)).thenReturn(true);
-        Mockito.when(this.authenticationService.isCustomer(2L)).thenReturn(true);
-        Mockito.when(this.customerService.getCustomer(2L)).thenReturn(customer);
-
-        ResponseEntity<List<Order>> orderReceived = adminController.getListOfOrdersForVendorForClient(1L, 2L, 3L);
-        List<Order> answer = List.of(order1, order2);
-        assertNotNull(orderReceived);
-        assertEquals(HttpStatus.OK, orderReceived.getStatusCode());
-        assertEquals(answer, orderReceived.getBody());
+        assertEquals(orders, orderReceived.getBody());
     }
 }
