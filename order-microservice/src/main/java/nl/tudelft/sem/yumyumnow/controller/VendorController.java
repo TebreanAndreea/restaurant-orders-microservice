@@ -43,24 +43,15 @@ public class VendorController implements VendorApi {
 
     @Override
     public ResponseEntity<Void> addDishToVendor(Long vendorId, Dish dish) {
-        if (this.authenticationService.isVendor(vendorId)) {
-            try {
-                Dish savedDish = this.dishService.createNewDish(dish);
-
-                Optional<Vendor> vendorOptional = vendorRepository.findById(vendorId);
-                if (vendorOptional.isPresent()) {
-                    Vendor vendor = vendorOptional.get();
-                    vendor.addDishesItem(savedDish);
-                    vendorRepository.save(vendor);
-                    return new ResponseEntity<>(HttpStatus.OK);
-                } else {
-                    return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-                }
-            } catch (RuntimeException e) {
-                return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } else {
+        if (!this.authenticationService.isVendor(vendorId)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
+        try {
+            Dish savedDish = this.dishService.createNewDish(dish);
+            vendorService.saveDishToVendor(vendorId, savedDish);
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -69,15 +60,12 @@ public class VendorController implements VendorApi {
         try {
             Optional<Dish> optionalDish = dishService.getDishById(dishId);
             Vendor vendor = vendorService.getVendorById(vendorId);
-            Dish dish;
 
-            if (optionalDish.isPresent()) {
-                dish = optionalDish.get();
-            } else {
+            if (optionalDish.isEmpty()) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
 
-            boolean removed = vendorService.removeDishFromVendor(dish, vendor);
+            boolean removed = vendorService.removeDishFromVendor(optionalDish.get(), vendor);
 
             if (!removed) {
                 throw new RuntimeException();
@@ -153,8 +141,7 @@ public class VendorController implements VendorApi {
     @Override
     public ResponseEntity<List<Vendor>> getAllVendorsAddress(Location location, String filter, Integer radius) {
         try {
-            if (location == null || location.getLatitude() < -90 || location.getLatitude() > 90
-                    || location.getLongitude() < -180 || location.getLongitude() > 180) {
+            if (vendorService.isInvalidLocation(location)) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }
             filter = filter == null ? "" : filter;

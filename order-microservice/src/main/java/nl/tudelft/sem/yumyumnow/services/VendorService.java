@@ -176,4 +176,33 @@ public class VendorService {
         }
         return this.vendorRepository.findByLocationWithinRadius(location, filter, radius);
     }
+
+    /**
+     * Save a dish of a vendor.
+     *
+     * @param vendorId the id of the vendor
+     * @param savedDish the dish to be saved
+     */
+    public void saveDishToVendor(Long vendorId, Dish savedDish) {
+        Optional<Vendor> vendorOptional = vendorRepository.findById(vendorId);
+        if (vendorOptional.isPresent()) {
+            Vendor vendor = vendorOptional.get();
+            vendor.addDishesItem(savedDish);
+            vendorRepository.save(vendor);
+        }
+    }
+
+    /**
+     * Checks if a location is invalid.
+     *
+     * @param location the location to be checked
+     * @return true if it is invalid, false otherwise
+     */
+    public boolean isInvalidLocation(Location location) {
+        return location == null
+                || location.getLatitude() < -90
+                || location.getLatitude() > 90
+                || location.getLongitude() < -180
+                || location.getLongitude() > 180;
+    }
 }
