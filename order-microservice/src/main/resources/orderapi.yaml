@@ -1233,7 +1233,7 @@ components:
         email:
           type: string
           example: peter@gmail.com
-      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"orders\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
+      x-class-extra-annotation: "@javax.persistence.Entity @javax.persistence.Table(name = \"users\") @lombok.AllArgsConstructor @lombok.NoArgsConstructor"
     Customer:
       allOf:
         - $ref: '#/components/schemas/User'
