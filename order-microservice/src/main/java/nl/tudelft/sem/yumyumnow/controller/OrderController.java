@@ -12,6 +12,7 @@ import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.IntegrationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController;
 public class OrderController implements OrderApi {
 
     private final OrderService orderService;
+    private final UpdatesOrderService updatesOrderService;
     private final AuthenticationService authenticationService;
     private final CompletionFactory orderCompletionService;
 
@@ -34,13 +36,15 @@ public class OrderController implements OrderApi {
      * @param orderCompletionService a service creating the handlers for an order completion
      */
     @Autowired
-    public OrderController(OrderService orderService, AuthenticationService authenticationService,
+    public OrderController(OrderService orderService,
+                           UpdatesOrderService updatesOrderService,
+                           AuthenticationService authenticationService,
                            CompletionFactory orderCompletionService) {
         this.orderService = orderService;
+        this.updatesOrderService = updatesOrderService;
         this.authenticationService = authenticationService;
         this.orderCompletionService = orderCompletionService;
     }
-
 
     /**
      * Creates a new order by the given customer at the given vendor.
@@ -108,23 +112,23 @@ public class OrderController implements OrderApi {
      */
     @Override
     public ResponseEntity<String> completeOrder(Long orderId, Long userId) {
+        if (!this.authenticationService.isCustomer(userId)) {
+            return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
+        }
         try {
-            if (!this.authenticationService.isCustomer(userId)) {
-                return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-            } else if (!this.orderService.existsAtId(orderId)) {
+            if (!this.orderService.existsAtId(orderId)) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-            } else {
-                Order order = this.orderService.getOrderById(orderId);
-                IntegrationService integration = this.authenticationService.getIntegrationService();
-                OrderCompletionHandler firstHandler = this.orderCompletionService
-                        .createCompletionResponsibilityChain(integration);
-                Order.StatusEnum status = firstHandler.handleOrderCompletion(order);
-                boolean saved = this.orderService.setOrderStatus(orderId, status);
-                if (!saved) {
-                    throw new RuntimeException("Save operation failed");
-                }
-                return ResponseEntity.ok(status.getValue());
             }
+            Order order = this.orderService.getOrderById(orderId);
+            IntegrationService integration = this.authenticationService.getIntegrationService();
+            OrderCompletionHandler firstHandler = this.orderCompletionService
+                .createCompletionResponsibilityChain(integration);
+            Order.StatusEnum status = firstHandler.handleOrderCompletion(order);
+            boolean saved = this.updatesOrderService.setOrderStatus(orderId, status);
+            if (!saved) {
+                throw new RuntimeException("Save operation failed");
+            }
+            return ResponseEntity.ok(status.getValue());
         } catch (Exception e) {
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
@@ -142,21 +146,22 @@ public class OrderController implements OrderApi {
     public ResponseEntity<Void> addDishToOrder(Long orderId, Long customerId, Dish dish) {
         if (!this.authenticationService.isCustomer(customerId) || !this.orderService.existsAtId(orderId)) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        } else if (!this.orderService.getOrderById(orderId).getCustomerId().equals(customerId)) {
+        }
+        if (!this.orderService.getOrderById(orderId).getCustomerId().equals(customerId)) {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
-        } else {
-            try {
-                if (dish == null) {
-                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-                List<Dish> savedDish = this.orderService.addDishToOrder(orderId, dish);
-                if (savedDish == null) {
-                    return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
-                }
-                return new ResponseEntity<>(HttpStatus.OK);
-            } catch (Exception e) {
+        }
+        if (dish == null) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        try {
+
+            List<Dish> savedDish = this.orderService.addDishToOrder(orderId, dish);
+            if (savedDish == null) {
                 return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
             }
+            return new ResponseEntity<>(HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -190,7 +195,7 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
         }
         try {
-            boolean updated = this.orderService.updateOrder(orderId, dishes, location, orderStatus, time);
+            boolean updated = this.updatesOrderService.updateOrder(orderId, dishes, location, orderStatus, time);
             return updated ? new ResponseEntity<>(HttpStatus.OK)
                     : new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
@@ -257,7 +262,7 @@ public class OrderController implements OrderApi {
             return new ResponseEntity<>(HttpStatus.UNAUTHORIZED);
         }
         try {
-            boolean status = this.orderService.removeDishFromOrder(orderId, dish);
+            boolean status = this.updatesOrderService.removeDishFromOrder(orderId, dish);
             if (!status) {
                 throw new RuntimeException();
             }
@@ -273,7 +278,7 @@ public class OrderController implements OrderApi {
             if (authenticationService.isCustomer(userId) && orderService.isUserAssociatedWithOrder(orderId, userId)) {
                 Order order = orderService.getOrderById(orderId);
                 order.setSpecialRequirenments(body);
-                Optional<Order> updatedOrder = orderService.modifyOrderRequirements(order);
+                Optional<Order> updatedOrder = updatesOrderService.modifyOrderRequirements(order);
 
                 if (updatedOrder.isPresent()) {
                     return new ResponseEntity<>(HttpStatus.OK);
@@ -304,7 +309,7 @@ public class OrderController implements OrderApi {
             try {
                 Order.StatusEnum newStatus = Order.StatusEnum.fromValue(body);
 
-                boolean saved = this.orderService.setOrderStatus(orderId, newStatus);
+                boolean saved = this.updatesOrderService.setOrderStatus(orderId, newStatus);
 
                 if (saved) {
                     return new ResponseEntity<>(HttpStatus.OK);

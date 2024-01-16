@@ -80,20 +80,6 @@ public class VendorControllerTest {
     }
 
     @Test
-    public void vendorNotFoundTest() {
-        Dish dish = new Dish();
-        dish.setName("Non-existent Vendor Dish");
-
-        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(true);
-        Mockito.when(this.vendorRepository.findById(100L)).thenReturn(Optional.empty());
-
-        ResponseEntity<Void> response = vendorController.addDishToVendor(100L, dish);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-    }
-
-    @Test
     public void dishServiceFailureTest() {
         Dish dish = new Dish();
         dish.setName("Test Dish");
@@ -102,24 +88,8 @@ public class VendorControllerTest {
 
         Vendor vendor = new Vendor();
         vendor.setId(100L);
-        Mockito.when(this.vendorRepository.findById(100L)).thenReturn(Optional.of(vendor));
 
         Mockito.when(this.dishService.createNewDish(dish)).thenThrow(RuntimeException.class);
-
-        ResponseEntity<Void> response = vendorController.addDishToVendor(100L, dish);
-
-        assertNotNull(response);
-        assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
-    }
-
-    @Test
-    public void vendorRepositoryFailureTest() {
-        Dish dish = new Dish();
-        dish.setName("Test Dish");
-
-        Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(true);
-
-        Mockito.when(this.vendorRepository.findById(100L)).thenThrow(RuntimeException.class);
 
         ResponseEntity<Void> response = vendorController.addDishToVendor(100L, dish);
 
@@ -136,7 +106,6 @@ public class VendorControllerTest {
 
         Vendor vendor = new Vendor();
         vendor.setId(100L);
-        Mockito.when(this.vendorRepository.findById(100L)).thenReturn(Optional.of(vendor));
 
         Mockito.when(this.dishService.createNewDish(dish)).thenReturn(dish);
 
@@ -144,9 +113,6 @@ public class VendorControllerTest {
 
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-
-        // Assert that the vendor repository is called to save the updated vendor
-        Mockito.verify(this.vendorRepository, Mockito.times(1)).save(vendor);
     }
 
     @Test
@@ -156,14 +122,11 @@ public class VendorControllerTest {
 
         Mockito.when(this.authenticationService.isVendor(100L)).thenReturn(true);
 
-        Vendor vendor = new Vendor();
-        vendor.setId(100L);
-        Mockito.when(this.vendorRepository.findById(100L)).thenReturn(Optional.of(vendor));
+        Long vendorId = 100L;
 
         Mockito.when(this.dishService.createNewDish(dish)).thenReturn(dish);
 
-        // Simulate a failure when saving the vendor after adding a dish
-        Mockito.doThrow(RuntimeException.class).when(this.vendorRepository).save(vendor);
+        Mockito.doThrow(RuntimeException.class).when(this.vendorService).saveDishToVendor(vendorId, dish);
 
         ResponseEntity<Void> response = vendorController.addDishToVendor(100L, dish);
 
@@ -615,6 +578,7 @@ public class VendorControllerTest {
         customer.setLatitude(291.0);
         customer.setLongitude(45.0);
 
+        Mockito.when(vendorService.isInvalidLocation(customer)).thenReturn(true);
         Mockito.when(this.vendorService.findByLocationWithinRadius(customer, "bistro", 1000)).thenReturn(null);
         ResponseEntity<List<Vendor>> vendorsReceived = this.vendorController.getAllVendorsAddress(customer, "bistro", 1000);
 

@@ -15,6 +15,7 @@ import nl.tudelft.sem.yumyumnow.model.Location;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
+import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.BaseOrderCompletionHandler;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import org.junit.jupiter.api.BeforeEach;
@@ -26,6 +27,7 @@ import org.springframework.http.ResponseEntity;
 public class OrderControllerTest {
 
     private OrderService orderService;
+    private UpdatesOrderService updatesOrderService;
     private AuthenticationService authenticationService;
     private CompletionFactory orderCompletionService;
     private OrderController orderController;
@@ -43,9 +45,11 @@ public class OrderControllerTest {
     @BeforeEach
     public void setup() {
         this.orderService = Mockito.mock(OrderService.class);
+        this.updatesOrderService = Mockito.mock(UpdatesOrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
         this.orderCompletionService = Mockito.mock(CompletionFactory.class);
-        this.orderController = new OrderController(orderService, authenticationService, orderCompletionService);
+        this.orderController = new OrderController(orderService, updatesOrderService,
+            authenticationService, orderCompletionService);
     }
 
     /**
@@ -223,7 +227,7 @@ public class OrderControllerTest {
         Mockito.when(this.orderService.existsAtId(445L)).thenReturn(true);
         Mockito.when(this.orderCompletionService.createCompletionResponsibilityChain(Mockito.any()))
                 .thenReturn(stubCompletionHandler);
-        Mockito.when(this.orderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(false);
+        Mockito.when(this.updatesOrderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(false);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController.completeOrder(445L, 332L).getStatusCode());
     }
 
@@ -233,7 +237,7 @@ public class OrderControllerTest {
         Mockito.when(this.orderService.existsAtId(445L)).thenReturn(true);
         Mockito.when(this.orderCompletionService.createCompletionResponsibilityChain(Mockito.any()))
                 .thenReturn(stubCompletionHandler);
-        Mockito.when(this.orderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(true);
+        Mockito.when(this.updatesOrderService.setOrderStatus(445L, Order.StatusEnum.PREPARING)).thenReturn(true);
         ResponseEntity<String> result = this.orderController.completeOrder(445L, 332L);
         assertEquals(HttpStatus.OK, result.getStatusCode());
         assertEquals("preparing", result.getBody());
@@ -377,7 +381,7 @@ public class OrderControllerTest {
         Mockito.when(this.orderService.existsAtId(16L)).thenReturn(true);
         Mockito.when(this.orderService.getOrderById(16L)).thenReturn(order);
         Mockito.when(this.authenticationService.isAdmin(2L)).thenReturn(true);
-        Mockito.when(this.orderService.updateOrder(Mockito.any(), Mockito.any(), Mockito.any(),
+        Mockito.when(this.updatesOrderService.updateOrder(Mockito.any(), Mockito.any(), Mockito.any(),
                 Mockito.any(), Mockito.any())).thenReturn(true);
 
         assertEquals(HttpStatus.BAD_REQUEST, this.orderController
@@ -403,7 +407,7 @@ public class OrderControllerTest {
 
         Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
         Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
-        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+        Mockito.when(this.updatesOrderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
                 .thenReturn(true);
 
         String status = "on-transit";
@@ -423,7 +427,7 @@ public class OrderControllerTest {
 
         Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
         Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
-        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+        Mockito.when(this.updatesOrderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
                 .thenReturn(false);
 
         String status = "on-transit";
@@ -443,7 +447,7 @@ public class OrderControllerTest {
 
         Mockito.when(this.orderService.existsAtId(25L)).thenReturn(true);
         Mockito.when(this.orderService.getOrderById(25L)).thenReturn(order);
-        Mockito.when(this.orderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
+        Mockito.when(this.updatesOrderService.updateOrder(25L, dishes, loc, Order.StatusEnum.ON_TRANSIT, time))
                 .thenThrow(new NoSuchElementException("No order exists with id 25"));
 
         String status = "on-transit";
@@ -543,7 +547,7 @@ public class OrderControllerTest {
         Dish d = new Dish();
         Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
         Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
-        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(true);
+        Mockito.when(this.updatesOrderService.removeDishFromOrder(200L, d)).thenReturn(true);
         assertEquals(HttpStatus.OK, this.orderController
                 .removeDishFromOrder(200L, 12L, d).getStatusCode());
     }
@@ -553,7 +557,7 @@ public class OrderControllerTest {
         Dish d = new Dish();
         Mockito.when(this.orderService.existsAtId(200L)).thenReturn(true);
         Mockito.when(this.orderService.isUserAssociatedWithOrder(200L, 12L)).thenReturn(true);
-        Mockito.when(this.orderService.removeDishFromOrder(200L, d)).thenReturn(false);
+        Mockito.when(this.updatesOrderService.removeDishFromOrder(200L, d)).thenReturn(false);
         assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, this.orderController
                 .removeDishFromOrder(200L, 12L, d).getStatusCode());
     }
@@ -573,7 +577,7 @@ public class OrderControllerTest {
         Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
         Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
         Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
-        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.of(modifiedOrder));
+        Mockito.when(updatesOrderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.of(modifiedOrder));
 
         ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
         assertNotNull(response);
@@ -624,7 +628,7 @@ public class OrderControllerTest {
         Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
         Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
         Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
-        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.empty());
+        Mockito.when(updatesOrderService.modifyOrderRequirements(modifiedOrder)).thenReturn(Optional.empty());
 
         ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
         assertNotNull(response);
@@ -657,7 +661,7 @@ public class OrderControllerTest {
         Mockito.when(authenticationService.isCustomer(11L)).thenReturn(true);
         Mockito.when(orderService.isUserAssociatedWithOrder(10L, 11L)).thenReturn(true);
         Mockito.when(orderService.getOrderById(10L)).thenReturn(order);
-        Mockito.when(orderService.modifyOrderRequirements(modifiedOrder)).thenThrow(new RuntimeException());
+        Mockito.when(updatesOrderService.modifyOrderRequirements(modifiedOrder)).thenThrow(new RuntimeException());
 
         ResponseEntity<Void> response = orderController.setOrderRequirements(10L, 11L, "Tuna, no crust.");
         assertNotNull(response);
@@ -671,7 +675,7 @@ public class OrderControllerTest {
         String body = "accepted";
 
         Mockito.when(authenticationService.isVendor(userId)).thenReturn(true);
-        Mockito.when(orderService.setOrderStatus(orderId, Order.StatusEnum.fromValue(body))).thenReturn(true);
+        Mockito.when(updatesOrderService.setOrderStatus(orderId, Order.StatusEnum.fromValue(body))).thenReturn(true);
 
         ResponseEntity<Void> response = orderController.setOrderStatus(orderId, userId, body);
 

@@ -32,9 +32,6 @@ public class CustomerService {
         ResponseEntity<Customer> response = integrationService.getRestTemplate()
             .getForEntity(url + "/customer/"
             + customerId, Customer.class);
-        if (response.getStatusCode().isError()) {
-            return null;
-        }
         return response.getBody();
     }
     /**
@@ -47,9 +44,6 @@ public class CustomerService {
     public Location getDefaultHomeAddress(Long customerId) {
         ResponseEntity<Location> response = integrationService.getRestTemplate().getForEntity(url + "/customer/location/"
             + customerId, Location.class);
-        if (response.getStatusCode().isError()) {
-            return null;
-        }
         return response.getBody();
     }
 
@@ -70,9 +64,6 @@ public class CustomerService {
         String url = integrationService.getUserMicroserviceAddress() + "/customer/homeAddress/" + customerId;
         ResponseEntity<Location> response = new PutRequest(integrationService.getRestTemplate(),
             url, location).send(Location.class);
-        if (response.getStatusCode().isError()) {
-            return null;
-        }
         return response.getBody();
     }
 }

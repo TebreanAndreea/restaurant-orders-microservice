@@ -9,16 +9,13 @@ import static org.mockito.Mockito.when;
 import java.util.NoSuchElementException;
 import java.util.Optional;
 import nl.tudelft.sem.yumyumnow.controller.AnalyticsController;
-import nl.tudelft.sem.yumyumnow.controller.VendorController;
-import nl.tudelft.sem.yumyumnow.database.VendorRepository;
 import nl.tudelft.sem.yumyumnow.model.Dish;
 import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Rating;
 import nl.tudelft.sem.yumyumnow.services.AnalyticsService;
+import nl.tudelft.sem.yumyumnow.services.AnalyticsVendorService;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
-import nl.tudelft.sem.yumyumnow.services.DishService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
-import nl.tudelft.sem.yumyumnow.services.VendorService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -29,6 +26,7 @@ public class AnalyticsControllerTest {
 
     private OrderService orderService;
     private AnalyticsService analyticsService;
+    private AnalyticsVendorService analyticsVendorService;
     private AuthenticationService authenticationService;
     private AnalyticsController analyticsController;
 
@@ -40,7 +38,9 @@ public class AnalyticsControllerTest {
         this.analyticsService = Mockito.mock(AnalyticsService.class);
         this.orderService = Mockito.mock(OrderService.class);
         this.authenticationService = Mockito.mock(AuthenticationService.class);
-        this.analyticsController = new AnalyticsController(orderService, analyticsService, authenticationService);
+        this.analyticsVendorService = Mockito.mock(AnalyticsVendorService.class);
+        this.analyticsController = new AnalyticsController(orderService,
+                analyticsService, authenticationService, analyticsVendorService);
     }
 
     @Test
@@ -93,7 +93,7 @@ public class AnalyticsControllerTest {
         Double average = 43.5;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorPrice(vendorId)).thenReturn(average);
+        Mockito.when(analyticsVendorService.getAverageVendorPrice(vendorId)).thenReturn(average);
 
         ResponseEntity<Double> response = analyticsController.getAveragePrice(vendorId);
 
@@ -106,7 +106,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorPrice(vendorId)).thenReturn(null);
+        Mockito.when(analyticsVendorService.getAverageVendorPrice(vendorId)).thenReturn(null);
 
         ResponseEntity<Double> response = analyticsController.getAveragePrice(vendorId);
 
@@ -129,7 +129,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorPrice(vendorId)).thenThrow(new RuntimeException());
+        Mockito.when(analyticsVendorService.getAverageVendorPrice(vendorId)).thenThrow(new RuntimeException());
 
         ResponseEntity<Double> response = analyticsController.getAveragePrice(vendorId);
 
@@ -142,7 +142,7 @@ public class AnalyticsControllerTest {
         Double averageRating = 4.5;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorRating(vendorId)).thenReturn(averageRating);
+        Mockito.when(analyticsVendorService.getAverageVendorRating(vendorId)).thenReturn(averageRating);
 
         ResponseEntity<Double> response = analyticsController.getAverageRating(vendorId);
 
@@ -155,7 +155,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorRating(vendorId)).thenReturn(null);
+        Mockito.when(analyticsVendorService.getAverageVendorRating(vendorId)).thenReturn(null);
 
         ResponseEntity<Double> response = analyticsController.getAverageRating(vendorId);
 
@@ -178,7 +178,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getAverageVendorRating(vendorId)).thenThrow(new RuntimeException());
+        Mockito.when(analyticsVendorService.getAverageVendorRating(vendorId)).thenThrow(new RuntimeException());
 
         ResponseEntity<Double> response = analyticsController.getAverageRating(vendorId);
 
@@ -192,7 +192,7 @@ public class AnalyticsControllerTest {
         Dish dish = new Dish().name("fries").id(12L);
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getPopularDish(vendorId)).thenReturn(dish);
+        Mockito.when(analyticsVendorService.getPopularDish(vendorId)).thenReturn(dish);
 
         ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
 
@@ -218,7 +218,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getPopularDish(vendorId)).thenReturn(null);
+        Mockito.when(analyticsVendorService.getPopularDish(vendorId)).thenReturn(null);
 
         ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
 
@@ -231,7 +231,7 @@ public class AnalyticsControllerTest {
         Long vendorId = 1L;
 
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.getPopularDish(vendorId)).thenThrow(new RuntimeException());
+        Mockito.when(analyticsVendorService.getPopularDish(vendorId)).thenThrow(new RuntimeException());
 
         ResponseEntity<Dish> response = analyticsController.getPopularDish(vendorId);
 
@@ -243,7 +243,7 @@ public class AnalyticsControllerTest {
     void testGetOrdersPerDay() {
         Long vendorId = 1L;
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenReturn(5.0);
+        Mockito.when(analyticsVendorService.averageOrdersPerDay(vendorId)).thenReturn(5.0);
 
         ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
 
@@ -255,7 +255,7 @@ public class AnalyticsControllerTest {
     void testGetOrdersPerDayNotFound() {
         Long vendorId = 1L;
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenReturn(null);
+        Mockito.when(analyticsVendorService.averageOrdersPerDay(vendorId)).thenReturn(null);
 
         ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
 
@@ -276,7 +276,7 @@ public class AnalyticsControllerTest {
     void testGetOrdersPerDayInternalServerError() {
         Long vendorId = 1L;
         Mockito.when(authenticationService.isVendor(vendorId)).thenReturn(true);
-        Mockito.when(analyticsService.averageOrdersPerDay(vendorId)).thenThrow(new RuntimeException("Test Exception"));
+        Mockito.when(analyticsVendorService.averageOrdersPerDay(vendorId)).thenThrow(new RuntimeException("Test Exception"));
 
         ResponseEntity<Double> response = analyticsController.getOrdersPerDay(vendorId);
 
@@ -362,11 +362,6 @@ public class AnalyticsControllerTest {
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(12.36, response.getBody());
     }
-
-
-
-
-
 
     @Test
     public void setOrderRatingTestError() {
