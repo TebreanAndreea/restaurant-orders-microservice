@@ -100,9 +100,27 @@ public class VendorService {
      * @return The vendor with the corresponding id.
      */
     public Vendor createNewVendor(String vendorName) {
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
         Vendor vendor = new Vendor();
         vendor.setName(vendorName);
+        vendor.setId(System.currentTimeMillis());
         return this.vendorRepository.save(vendor);
+    }
+
+    /**
+     * Saves a vendor in the DB.
+     *
+     * @param vendor the vendor to store
+     */
+    public void saveVendor(Vendor vendor) {
+        if (vendor.getId() == null) {
+            vendor.setId(System.currentTimeMillis());
+        }
+        this.vendorRepository.save(vendor);
     }
 
     /**

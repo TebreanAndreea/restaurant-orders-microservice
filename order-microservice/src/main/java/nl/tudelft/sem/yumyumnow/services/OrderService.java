@@ -61,10 +61,22 @@ public class OrderService {
      * @return the new Order object, stored in the DB
      */
     public Order createNewOrder(Long customerId, Long vendorId) {
-        Order order = new Order();
-        order.setCustomerId(customerId);
-        order.setVendorId(vendorId);
-        order.setLocation(userService.getDefaultHomeAddress(customerId));
+        try {
+            Thread.sleep(1);
+        } catch (InterruptedException e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+        Order order = new Order()
+                .orderId(System.currentTimeMillis())
+                .customerId(customerId)
+                .vendorId(vendorId)
+                .location(userService.getDefaultHomeAddress(customerId))
+                .time(OffsetDateTime.MAX)
+                .price(0.0D)
+                .ratingId(-1L)
+                .status(Order.StatusEnum.PENDING)
+                .specialRequirenments("")
+                .dishes(new ArrayList<>());
         return this.orderRepository.save(order);
     }
 

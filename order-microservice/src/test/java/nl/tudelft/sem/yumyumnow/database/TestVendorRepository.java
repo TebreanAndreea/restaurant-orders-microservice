@@ -6,6 +6,7 @@ import java.util.Optional;
 import javax.persistence.EntityManager;
 import javax.persistence.EntityNotFoundException;
 import nl.tudelft.sem.yumyumnow.model.Location;
+import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.model.Vendor;
 import org.springframework.dao.IncorrectResultSizeDataAccessException;
 import org.springframework.data.domain.Example;
@@ -109,11 +110,11 @@ public class TestVendorRepository implements VendorRepository {
     @Override
     public <S extends Vendor> S save(S entity) {
         call("save");
-        long id = this.vendors.size();
-        if (id > 0) {
-            id = Math.max(id, this.vendors.get((int) id - 1).getId());
+        if (entity.getId() == null) {
+            long id = this.vendors.stream().mapToLong(Vendor::getId).max().orElse(0) + 1;
+            entity.setId(id);
         }
-        entity.setId(id);
+        this.vendors.removeIf(x -> x.getId().equals(entity.getId()));
         this.vendors.add(entity);
         return entity;
     }

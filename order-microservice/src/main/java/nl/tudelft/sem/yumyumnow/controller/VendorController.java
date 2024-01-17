@@ -114,8 +114,12 @@ public class VendorController implements VendorApi {
     @Override
     public ResponseEntity<Vendor> getVendor(Long vendorId) {
         try {
-            Vendor vendor = vendorService.getVendorById(vendorId);
-            return ResponseEntity.ok(vendor);
+            Vendor vendor = this.authenticationService.retrieveVendor(vendorId);
+            if (vendor != null) {
+                vendorService.saveVendor(vendor);
+            }
+            Vendor foundVendor = vendorService.getVendorById(vendorId);
+            return ResponseEntity.ok(foundVendor);
         } catch (NoSuchElementException e) {
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         } catch (RuntimeException e) {
