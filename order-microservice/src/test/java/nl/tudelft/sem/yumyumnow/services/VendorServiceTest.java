@@ -52,7 +52,7 @@ public class VendorServiceTest {
 
     @Test
     public void testGetVendorById() {
-        Vendor vendor = new Vendor();
+        Vendor vendor = new Vendor().id(0L);
         vendor.setName("Vendor1");
         this.vendorRepository.save(vendor);
 
@@ -79,7 +79,7 @@ public class VendorServiceTest {
         vendor.setDishes(dishes);
         this.vendorRepository.save(vendor);
 
-        List<Dish> dishesRetrive = this.vendorService.getVendorDishes(0L);
+        List<Dish> dishesRetrive = this.vendorService.getVendorDishes(112L);
         assertEquals(dishes.size(), dishesRetrive.size());
         assertEquals(dishes.get(0), dishesRetrive.get(0));
         assertEquals(dishes.get(1), dishesRetrive.get(1));
@@ -316,8 +316,8 @@ public class VendorServiceTest {
         List<Vendor> vendors = this.vendorService.getAllVendors();
         assertEquals(3, this.vendorRepository.getMethodCalls().size());
 
-        assertEquals(vendor1, vendors.get(0));
-        assertEquals(vendor2, vendors.get(1));
+        assertTrue(vendors.contains(vendor1));
+        assertTrue(vendors.contains(vendor2));
         assertEquals(2, vendors.size());
     }
 
@@ -337,7 +337,7 @@ public class VendorServiceTest {
         List<Vendor> vendors = this.vendorService.findByVendorNameContaining("Bistro");
         assertEquals(3, this.vendorRepository.getMethodCalls().size());
 
-        assertEquals(vendor1, vendors.get(0));
+        assertTrue(vendors.contains(vendor1));
         assertEquals(1, vendors.size());
     }
 
@@ -366,7 +366,7 @@ public class VendorServiceTest {
         List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location1, "Bistro", 4000);
         assertEquals(3, this.vendorRepository.getMethodCalls().size());
         assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(2));
-        assertEquals(vendor1, vendors.get(0));
+        assertTrue(vendors.contains(vendor1));
         assertEquals(1, vendors.size());
     }
 
@@ -407,7 +407,7 @@ public class VendorServiceTest {
         List<Vendor> vendors = this.vendorService.findByLocationWithinRadius(location1, "Bistro", null);
         assertEquals(3, this.vendorRepository.getMethodCalls().size());
         assertEquals("findByLocationWithinRadius", this.vendorRepository.getMethodCalls().get(2));
-        assertEquals(vendor1, vendors.get(0));
+        assertTrue(vendors.contains(vendor1));
         assertEquals(1, vendors.size());
     }
 
@@ -491,6 +491,13 @@ public class VendorServiceTest {
         boolean result = vendorService.isInvalidLocation(invalidLongitude);
 
         assertFalse(result);
+    }
+
+    @Test
+    public void testSaveVendor() {
+        Vendor vendor = new Vendor().id(11L).name("Burger King");
+        this.vendorService.saveVendor(vendor);
+        assertEquals(vendor, this.vendorService.getVendorById(11L));
     }
 
 }

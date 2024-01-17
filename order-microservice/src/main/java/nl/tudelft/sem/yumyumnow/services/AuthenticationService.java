@@ -1,6 +1,7 @@
 package nl.tudelft.sem.yumyumnow.services;
 
 import lombok.Getter;
+import nl.tudelft.sem.yumyumnow.model.Vendor;
 import nl.tudelft.sem.yumyumnow.services.requests.GetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -61,6 +62,22 @@ public class AuthenticationService {
         String url = integrationService.getUserMicroserviceAddress() + "/user/" + userId;
         ResponseEntity<String> response = new GetRequest(integrationService.getRestTemplate(), url)
                 .send(String.class);
+        if (response.getStatusCode().isError()) {
+            return null;
+        }
+        return response.getBody();
+    }
+
+    /**
+     * Retrieves a vendor from the Users microservice.
+     *
+     * @param vendorId the vendor ID.
+     * @return the vendor object, or null if the request was not successful.
+     */
+    public Vendor retrieveVendor(Long vendorId) {
+        String url = integrationService.getUserMicroserviceAddress() + "/vendor/" + vendorId;
+        ResponseEntity<Vendor> response = new GetRequest(integrationService.getRestTemplate(), url)
+                .send(Vendor.class);
         if (response.getStatusCode().isError()) {
             return null;
         }

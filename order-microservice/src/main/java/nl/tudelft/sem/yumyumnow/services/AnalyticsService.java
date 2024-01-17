@@ -43,7 +43,16 @@ public class AnalyticsService {
         return this.ratingRepository.findById(ratingId);
     }
 
+    /**
+     * Stores a new rating in the DB.
+     *
+     * @param rating the rating to store
+     * @return the stored rating
+     */
     public Rating createNewRating(Rating rating) {
+        if (rating.getId() == null) {
+            rating.setId(System.currentTimeMillis());
+        }
         return this.ratingRepository.save(rating);
     }
 

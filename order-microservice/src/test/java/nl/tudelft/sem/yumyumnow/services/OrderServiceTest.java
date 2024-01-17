@@ -2,7 +2,6 @@ package nl.tudelft.sem.yumyumnow.services;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -10,13 +9,9 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
-import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.Optional;
-import java.util.stream.Stream;
-import javax.swing.text.html.Option;
 import nl.tudelft.sem.yumyumnow.database.TestOrderRepository;
 import nl.tudelft.sem.yumyumnow.database.TestRatingRepository;
 import nl.tudelft.sem.yumyumnow.database.TestVendorRepository;
@@ -82,7 +77,7 @@ public class OrderServiceTest {
         assertEquals(1, this.orderRepository.getMethodCalls().size());
         assertEquals("save", this.orderRepository.getMethodCalls().get(0));
 
-        Order storedOrder = this.orderService.getOrderById(1L);
+        Order storedOrder = this.orderService.getOrderById(order.getOrderId());
         assertEquals(order.getCustomerId(), storedOrder.getCustomerId());
         assertEquals(order.getVendorId(), storedOrder.getVendorId());
         assertEquals(order.getLocation(), storedOrder.getLocation());
@@ -98,7 +93,7 @@ public class OrderServiceTest {
         assertEquals(1, this.orderRepository.getMethodCalls().size());
         assertEquals("save", this.orderRepository.getMethodCalls().get(0));
 
-        Order storedOrder = this.orderService.getOrderById(1L);
+        Order storedOrder = this.orderService.getOrderById(order.getOrderId());
         assertEquals(order.getCustomerId(), storedOrder.getCustomerId());
         assertEquals(order.getVendorId(), storedOrder.getVendorId());
         assertNull(storedOrder.getLocation());
@@ -111,14 +106,13 @@ public class OrderServiceTest {
     public void testGetAllOrders() {
         Order order1 = this.orderService.createNewOrder(1L, 14L);
         Order order2 = this.orderService.createNewOrder(1L, 14L);
-
+        List<Order> orders = List.of(order1, order2);
 
         List<Order> storedOrder = this.orderService.getAllOrders();
         assertEquals(3, this.orderRepository.getMethodCalls().size());
 
-        assertEquals(order1, storedOrder.get(0));
-        assertEquals(order2, storedOrder.get(1));
         assertEquals(storedOrder.size(), 2);
+        assertTrue(orders.containsAll(storedOrder));
     }
 
     /**
@@ -140,14 +134,13 @@ public class OrderServiceTest {
     public void testGetAllOrdersForCustomer() {
         Order order1 = this.orderService.createNewOrder(1L, 14L);
         Order order2 = this.orderService.createNewOrder(1L, 14L);
-
+        List<Order> orders = List.of(order1, order2);
 
         List<Order> storedOrder = this.orderService.getAllOrdersForCustomer(1L);
         assertEquals(3, this.orderRepository.getMethodCalls().size());
 
-        assertEquals(order1, storedOrder.get(0));
-        assertEquals(order2, storedOrder.get(1));
         assertEquals(storedOrder.size(), 2);
+        assertTrue(orders.containsAll(storedOrder));
     }
 
     /**
@@ -185,14 +178,13 @@ public class OrderServiceTest {
     public void testGetAllOrdersForVendor() {
         Order order1 = this.orderService.createNewOrder(1L, 14L);
         Order order2 = this.orderService.createNewOrder(3L, 14L);
-
+        List<Order> orders = List.of(order1, order2);
 
         List<Order> storedOrder = this.orderService.getAllOrdersForVendor(14L);
         assertEquals(3, this.orderRepository.getMethodCalls().size());
 
-        assertEquals(order1, storedOrder.get(0));
-        assertEquals(order2, storedOrder.get(1));
         assertEquals(storedOrder.size(), 2);
+        assertTrue(orders.containsAll(storedOrder));
     }
 
     /**

@@ -40,6 +40,9 @@ public class DishService {
      * @return the new Dish object, stored in the DB
      */
     public Dish createNewDish(Dish dish) {
+        if (dish.getId() == null) {
+            dish.setId(System.currentTimeMillis());
+        }
         return this.dishRepository.save(dish);
     }
 
