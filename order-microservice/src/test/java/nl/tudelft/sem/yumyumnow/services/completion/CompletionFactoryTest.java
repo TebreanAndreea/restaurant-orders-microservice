@@ -13,14 +13,17 @@ public class CompletionFactoryTest {
     public void testCompletionFactory() {
         CompletionFactory factory = new CompletionFactory();
         IntegrationService integration = new IntegrationService();
-        OrderCompletionHandler first = factory.createCompletionResponsibilityChain(integration);
+        BaseOrderCompletionHandler first = (BaseOrderCompletionHandler) factory
+                .createCompletionResponsibilityChain(integration);
 
         assertNotNull(first.nextHandler);
-        assertNotNull(first.nextHandler.nextHandler);
-        assertNull(first.nextHandler.nextHandler.nextHandler);
+        assertNotNull(((BaseOrderCompletionHandler) first.nextHandler).nextHandler);
+        assertNull(((BaseOrderCompletionHandler) ((BaseOrderCompletionHandler) first.nextHandler)
+                .nextHandler).nextHandler);
 
         assertEquals(OrderPaymentHandler.class, first.getClass());
         assertEquals(OrderEmailHandler.class, first.nextHandler.getClass());
-        assertEquals(OrderDeliveryHandler.class, first.nextHandler.nextHandler.getClass());
+        assertEquals(OrderDeliveryHandler.class, ((BaseOrderCompletionHandler) first.nextHandler)
+                .nextHandler.getClass());
     }
 }

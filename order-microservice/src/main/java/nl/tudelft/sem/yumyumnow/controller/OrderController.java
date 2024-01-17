@@ -15,7 +15,6 @@ import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
 import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
-import org.aspectj.weaver.ast.Or;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

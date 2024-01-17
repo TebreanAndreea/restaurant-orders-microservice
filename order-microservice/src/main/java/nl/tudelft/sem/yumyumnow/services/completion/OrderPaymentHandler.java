@@ -2,7 +2,7 @@ package nl.tudelft.sem.yumyumnow.services.completion;
 
 import nl.tudelft.sem.yumyumnow.model.Order;
 
-public class OrderPaymentHandler extends OrderCompletionHandler {
+public class OrderPaymentHandler extends BaseOrderCompletionHandler {
 
 
     /**
@@ -11,7 +11,8 @@ public class OrderPaymentHandler extends OrderCompletionHandler {
      * @param nextHandler the next Order completion handler.
      */
     public OrderPaymentHandler(OrderCompletionHandler nextHandler) {
-        super(nextHandler);
+        super();
+        this.setNext(nextHandler);
     }
 
     /**

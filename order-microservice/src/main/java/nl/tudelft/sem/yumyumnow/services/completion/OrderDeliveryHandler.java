@@ -6,7 +6,7 @@ import nl.tudelft.sem.yumyumnow.services.requests.GetRequest;
 import nl.tudelft.sem.yumyumnow.services.requests.PostRequest;
 import org.springframework.http.ResponseEntity;
 
-public class OrderDeliveryHandler extends OrderCompletionHandler {
+public class OrderDeliveryHandler extends BaseOrderCompletionHandler {
 
     private final IntegrationService integrationService;
 
@@ -17,7 +17,8 @@ public class OrderDeliveryHandler extends OrderCompletionHandler {
      * @param nextHandler the next Order completion handler.
      */
     public OrderDeliveryHandler(IntegrationService integrationService, OrderCompletionHandler nextHandler) {
-        super(nextHandler);
+        super();
+        this.setNext(nextHandler);
         this.integrationService = integrationService;
     }
 

@@ -16,7 +16,7 @@ public class DeliveryHandlerTest {
     private OrderDeliveryHandler deliveryHandler;
     private RestTemplate restTemplate;
     private IntegrationService integrationService;
-    private final OrderCompletionHandler stubHandler = new OrderCompletionHandler() {
+    private final BaseOrderCompletionHandler stubHandler = new BaseOrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
             return order.getStatus() == Order.StatusEnum.ON_TRANSIT ? Order.StatusEnum.DELIVERED :

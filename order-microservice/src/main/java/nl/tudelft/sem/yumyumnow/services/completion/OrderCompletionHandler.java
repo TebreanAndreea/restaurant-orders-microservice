@@ -2,32 +2,20 @@ package nl.tudelft.sem.yumyumnow.services.completion;
 
 import nl.tudelft.sem.yumyumnow.model.Order;
 
-public abstract class OrderCompletionHandler {
-
-    protected final OrderCompletionHandler nextHandler;
+public interface OrderCompletionHandler {
 
     /**
-     * Empty constructor. Initializes the next handler to NULL.
-     * It will be the last handler in the Chain of Responsibility.
-     */
-    public OrderCompletionHandler() {
-        this.nextHandler = null;
-    }
-
-    /**
-     * Creates a handler instance.
+     * Set the next handler in the CoR.
      *
-     * @param nextHandler the next handler to be called in the Chain of Responsibility.
+     * @param nextHandler the next handler. (Can be null)
      */
-    public OrderCompletionHandler(OrderCompletionHandler nextHandler) {
-        this.nextHandler = nextHandler;
-    }
+    void setNext(OrderCompletionHandler nextHandler);
 
     /**
-     * Does something with the current order. If everything executes correctly, it will call the next handler.
+     * Handles the order to complete, and calls the next handler if it is successful.
      *
-     * @param order the current order to process.
-     * @return the status of the order after processing.
+     * @param order the order to complete.
+     * @return the order status after handling.
      */
-    public abstract Order.StatusEnum handleOrderCompletion(Order order);
+    Order.StatusEnum handleOrderCompletion(Order order);
 }

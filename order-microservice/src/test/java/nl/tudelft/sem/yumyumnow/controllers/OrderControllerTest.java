@@ -3,7 +3,6 @@ package nl.tudelft.sem.yumyumnow.controllers;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
@@ -17,8 +16,8 @@ import nl.tudelft.sem.yumyumnow.model.Order;
 import nl.tudelft.sem.yumyumnow.services.AuthenticationService;
 import nl.tudelft.sem.yumyumnow.services.OrderService;
 import nl.tudelft.sem.yumyumnow.services.UpdatesOrderService;
+import nl.tudelft.sem.yumyumnow.services.completion.BaseOrderCompletionHandler;
 import nl.tudelft.sem.yumyumnow.services.completion.CompletionFactory;
-import nl.tudelft.sem.yumyumnow.services.completion.OrderCompletionHandler;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
@@ -33,7 +32,7 @@ public class OrderControllerTest {
     private CompletionFactory orderCompletionService;
     private OrderController orderController;
 
-    private final OrderCompletionHandler stubCompletionHandler = new OrderCompletionHandler() {
+    private final BaseOrderCompletionHandler stubCompletionHandler = new BaseOrderCompletionHandler() {
         @Override
         public Order.StatusEnum handleOrderCompletion(Order order) {
             return Order.StatusEnum.PREPARING;
