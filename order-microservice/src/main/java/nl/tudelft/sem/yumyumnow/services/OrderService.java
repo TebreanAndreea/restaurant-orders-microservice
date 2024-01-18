@@ -71,7 +71,7 @@ public class OrderService {
                 .customerId(customerId)
                 .vendorId(vendorId)
                 .location(userService.getDefaultHomeAddress(customerId))
-                .time(OffsetDateTime.MAX)
+                .time(OffsetDateTime.now())
                 .price(0.0D)
                 .ratingId(-1L)
                 .status(Order.StatusEnum.PENDING)
